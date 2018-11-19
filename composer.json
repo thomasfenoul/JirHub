@@ -9,6 +9,7 @@
         "lesstif/php-jira-rest-client": "^1.33",
         "php-http/guzzle6-adapter": "*",
         "sensio/framework-extra-bundle": "^5.2",
+        "symfony/apache-pack": "dev-master",
         "symfony/console": "4.1.*",
         "symfony/flex": "^1.1",
         "symfony/framework-bundle": "4.1.*",
