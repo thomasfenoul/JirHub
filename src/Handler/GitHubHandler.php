@@ -30,8 +30,8 @@ class GitHubHandler
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             [
-                'state' => 'open',
-                'labels' => $label
+                'state'  => 'open',
+                'labels' => $label,
             ]
         );
     }
@@ -42,7 +42,7 @@ class GitHubHandler
 
         foreach ($openPullRequests as $openPullRequest) {
             $isHeadMatching = strtoupper($openPullRequest['head']['ref']) === strtoupper($headBranchName);
-            $isBaseDefault = strtoupper($openPullRequest['base']['ref']) === strtoupper(getenv('GITHUB_DEFAULT_BASE_BRANCH'));
+            $isBaseDefault  = strtoupper($openPullRequest['base']['ref']) === strtoupper(getenv('GITHUB_DEFAULT_BASE_BRANCH'));
 
             if ($isHeadMatching && $isBaseDefault) {
                 return $openPullRequest;
@@ -92,25 +92,25 @@ class GitHubHandler
 
     public function isBranchIgnored(string $branchName): bool
     {
-        $branchName = strtoupper($branchName);
+        $branchName         = strtoupper($branchName);
         $explodedBranchName = explode('/', $branchName);
-        $ignoredBranches = explode(',', getenv('GITHUB_IGNORED_PREFIXES'));
+        $ignoredBranches    = explode(',', getenv('GITHUB_IGNORED_PREFIXES'));
 
-        return in_array($explodedBranchName[0], $ignoredBranches);
+        return \in_array($explodedBranchName[0], $ignoredBranches);
     }
 
     public function isPullRequestApproved(int $pullRequestNumber): bool
     {
-        $reviews = array_reverse($this->getPullRequestReviews($pullRequestNumber));
+        $reviews      = array_reverse($this->getPullRequestReviews($pullRequestNumber));
         $approveCount = 0;
 
         foreach ($reviews as $review) {
-            if ($review['state'] === "CHANGES_REQUESTED") {
+            if ('CHANGES_REQUESTED' === $review['state']) {
                 return false;
             }
 
-            if ($review['state'] === "APPROVED") {
-                $approveCount++;
+            if ('APPROVED' === $review['state']) {
+                ++$approveCount;
 
                 if ($approveCount >= getenv('GITHUB_APPROVE_COUNT')) {
                     return true;
@@ -123,7 +123,7 @@ class GitHubHandler
 
     public function doesReviewBranchExists(string $reviewBranchName)
     {
-        return in_array(
+        return \in_array(
             getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName,
             explode(',', getenv('GITHUB_REVIEW_ENVIRONMENTS_LABELS'))
         );
@@ -133,8 +133,8 @@ class GitHubHandler
     {
         $pullRequests = $this->getOpenPullRequestsWithLabel(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName);
 
-        return 0 === count($pullRequests)
-            || (1 === count($pullRequests) && $pullRequests[0]['number'] === $pullRequestNumber);
+        return 0 === \count($pullRequests)
+            || (1 === \count($pullRequests) && $pullRequests[0]['number'] === $pullRequestNumber);
     }
 
     public function checkDeployability(string $headBranchName, string $reviewBranchName): bool
