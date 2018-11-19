@@ -163,7 +163,7 @@ class GitHubHandler
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        if ($this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
+        if (!$this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
             return false;
         }
 
