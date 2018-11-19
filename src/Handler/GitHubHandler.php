@@ -137,13 +137,39 @@ class GitHubHandler
             || (1 === \count($pullRequests) && $pullRequests[0]['number'] === $pullRequestNumber);
     }
 
-    public function checkDeployability(string $headBranchName, string $reviewBranchName): bool
+    public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = []): bool
     {
-        $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
+        if (empty($pullRequest)) {
+            $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
+        }
 
         return !$this->isBranchIgnored($headBranchName)
             && $this->doesReviewBranchExists($reviewBranchName)
             && $this->isReviewBranchAvailable($reviewBranchName, $pullRequest['number'])
             && $this->isPullRequestApproved($pullRequest['number']);
+    }
+
+    public function removeReviewTags(int $pullRequestNumber)
+    {
+        $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
+        $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequestNumber);
+
+        foreach ($reviewLabels as $reviewLabel) {
+            $this->removeLabelFromPullRequest($reviewLabel, $pullRequestNumber);
+        }
+    }
+
+    public function applyTags(string $headBranchName, string $reviewBranchName): bool
+    {
+        $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
+
+        if ($this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
+            return false;
+        }
+
+        $this->removeReviewTags($pullRequest['number']);
+        $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest['number']);
+
+        return true;
     }
 }

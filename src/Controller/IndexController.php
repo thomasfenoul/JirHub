@@ -17,9 +17,22 @@ class IndexController extends Controller
      */
     public function checkAction(Request $request, GitHubHandler $gitHubHandler)
     {
-        $branch      = $request->get('branch');
-        $environment = $request->get('env');
+        $branch = $request->get('branch');
+        $env    = $request->get('env');
 
-        return new Response((int) $gitHubHandler->checkDeployability($branch, $environment));
+        return new Response((int) $gitHubHandler->checkDeployability($branch, $env));
+    }
+
+    /**
+     * @Route("/apply", name="apply_tags", methods={"GET"})
+     *
+     * @return Response
+     */
+    public function applyAction(Request $request, GitHubHandler $gitHubHandler)
+    {
+        $branch = $request->get('branch');
+        $env    = $request->get('env');
+
+        return new Response((int) $gitHubHandler->applyTags($branch, $env));
     }
 }
