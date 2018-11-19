@@ -149,17 +149,19 @@ class GitHubHandler
             && $this->isPullRequestApproved($pullRequest['number']);
     }
 
-    public function removeReviewTags(int $pullRequestNumber)
+    public function removeReviewLabels(array $pullRequest)
     {
-        $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
-        $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequestNumber);
+        $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
+        $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
 
         foreach ($reviewLabels as $reviewLabel) {
-            $this->removeLabelFromPullRequest($reviewLabel, $pullRequestNumber);
+            if ($this->hasLabel($pullRequest, $reviewLabel)) {
+                $this->removeLabelFromPullRequest($reviewLabel, $pullRequest['number']);
+            }
         }
     }
 
-    public function applyTags(string $headBranchName, string $reviewBranchName): bool
+    public function applyLabels(string $headBranchName, string $reviewBranchName): bool
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
@@ -167,9 +169,20 @@ class GitHubHandler
             return false;
         }
 
-        $this->removeReviewTags($pullRequest['number']);
+        $this->removeReviewLabels($pullRequest);
         $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest['number']);
 
         return true;
+    }
+
+    public function hasLabel(array $pullRequest, string $search)
+    {
+        foreach ($pullRequest['labels'] as $pullRequestLabel) {
+            if ($pullRequestLabel['name'] === $search) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

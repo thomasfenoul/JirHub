@@ -24,7 +24,7 @@ class IndexController extends Controller
     }
 
     /**
-     * @Route("/apply", name="apply_tags", methods={"GET"})
+     * @Route("/apply", name="apply_labels", methods={"GET"})
      *
      * @return Response
      */
@@ -33,6 +33,6 @@ class IndexController extends Controller
         $branch = $request->get('branch');
         $env    = $request->get('env');
 
-        return new Response((int) $gitHubHandler->applyTags($branch, $env));
+        return new Response((int) $gitHubHandler->applyLabels($branch, $env));
     }
 }
