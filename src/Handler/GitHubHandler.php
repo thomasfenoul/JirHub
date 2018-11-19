@@ -125,7 +125,7 @@ class GitHubHandler
     {
         return \in_array(
             getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName,
-            explode(',', getenv('GITHUB_REVIEW_ENVIRONMENTS_LABELS'))
+            explode(',', getenv('GITHUB_REVIEW_LABELS'))
         );
     }
 
