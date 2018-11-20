@@ -143,10 +143,37 @@ class GitHubHandler
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
         }
 
-        return !$this->isBranchIgnored($headBranchName)
-            && $this->doesReviewBranchExists($reviewBranchName)
-            && $this->isReviewBranchAvailable($reviewBranchName, $pullRequest['number'])
-            && $this->isPullRequestApproved($pullRequest['number']);
+        if (empty($pullRequest) ||  null === $pullRequest) {
+            echo 'We have not found any pull request with head branch "' . $headBranchName . '".';
+
+            die;
+        }
+
+        if ($this->isBranchIgnored($headBranchName)) {
+            echo 'The branch "' . $headBranchName . '" does not need to be reviewed.';
+
+            die;
+        }
+
+        if (!$this->doesReviewBranchExists($reviewBranchName)) {
+            echo 'The review branch "' . $reviewBranchName . '" does not exist or does not have any attributed label.';
+
+            die;
+        }
+
+        if (!$this->isReviewBranchAvailable($reviewBranchName, $pullRequest['number'])) {
+            echo 'The review branch "' . $reviewBranchName . '" is already used by another PR.';
+
+            die;
+        }
+
+        if (!$this->isPullRequestApproved($pullRequest['number'])) {
+            echo 'The pull request with head branch "' . $headBranchName . '" does not have enough approving reviews or has requested changes.';
+
+            die;
+        }
+
+        return true;
     }
 
     public function removeReviewLabels(array $pullRequest)
