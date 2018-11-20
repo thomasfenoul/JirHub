@@ -137,7 +137,7 @@ class GitHubHandler
             || (1 === \count($pullRequests) && $pullRequests[0]['number'] === $pullRequestNumber);
     }
 
-    public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = []): bool
+    public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = [])
     {
         if (empty($pullRequest)) {
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
@@ -173,7 +173,7 @@ class GitHubHandler
             die;
         }
 
-        return true;
+        return 'OK';
     }
 
     public function removeReviewLabels(array $pullRequest)

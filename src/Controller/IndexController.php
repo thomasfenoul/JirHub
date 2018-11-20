@@ -20,7 +20,7 @@ class IndexController extends Controller
         $branch = $request->get('branch');
         $env    = $request->get('env');
 
-        return new Response((int) $gitHubHandler->checkDeployability($branch, $env));
+        return new Response($gitHubHandler->checkDeployability($branch, $env));
     }
 
     /**
