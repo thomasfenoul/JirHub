@@ -17,7 +17,7 @@ try {
 
 while (true) {
     try {
-        // TODO
+        $gitHubHandler->addValidationRequiredLabels();
     } catch (\Exception $e) {
         $worker->getLogger()->error('Error occured during sync_jira_github_labels process : ' . $e->getMessage());
     }
