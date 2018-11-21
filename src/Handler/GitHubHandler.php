@@ -3,16 +3,21 @@
 namespace App\Handler;
 
 use Github\Client as GitHubClient;
+use Psr\Log\LoggerInterface;
 
 class GitHubHandler
 {
     /** @var GitHubClient */
     private $gitHubClient;
 
-    public function __construct()
+    /** @var LoggerInterface */
+    private $logger;
+
+    public function __construct(LoggerInterface $logger)
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
+        $this->logger = $logger;
     }
 
     public function getOpenPullRequests(array $filters = []): array
@@ -143,7 +148,7 @@ class GitHubHandler
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
         }
 
-        if (empty($pullRequest) ||  null === $pullRequest) {
+        if (empty($pullRequest) || null === $pullRequest) {
             echo 'We have not found any pull request with head branch "' . $headBranchName . '".';
 
             die;
@@ -222,6 +227,22 @@ class GitHubHandler
 
         $this->removeReviewLabels($pullRequest);
         $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest['number']);
+
+        $jiraIssueName = JiraHandler::extractIssueNameFromString($headBranchName)
+            ?? JiraHandler::extractIssueNameFromString($pullRequest['title']);
+
+        $subject = $headBranchName;
+        $blame   = '(demander à ' . $pullRequest['user']['login'] . ' de retrouver la tâche Jira)';
+
+        if (null !== $jiraIssueName) {
+            $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueName);
+            $blame   = '';
+        }
+
+        $this->logger->info(
+            getenv('SLACK_LINK_TAG') . "\n" .
+            $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame
+        );
 
         return true;
     }

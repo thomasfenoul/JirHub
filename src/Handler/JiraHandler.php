@@ -56,4 +56,21 @@ class JiraHandler
 
         $this->issueService->transition($issueKey, $transition);
     }
+
+    public static function extractIssueNameFromString(string $str)
+    {
+        $matches = [];
+        preg_match(getenv('JIRA_ISSUE_REGEX_PATTERN'), $str, $matches);
+
+        if (1 === \count($matches)) {
+            return $matches[0];
+        }
+
+        return null;
+    }
+
+    public static function buildIssueUrlFromIssueName(string $issueName)
+    {
+        return getenv('JIRA_HOST') . '/browse/' . $issueName;
+    }
 }
