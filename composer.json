@@ -13,7 +13,7 @@
         "symfony/console": "4.1.*",
         "symfony/flex": "^1.1",
         "symfony/framework-bundle": "4.1.*",
-        "symfony/monolog-bundle": "^3.0@dev",
+        "symfony/monolog-bundle": "^3.3",
         "symfony/yaml": "4.1.*"
     },
 

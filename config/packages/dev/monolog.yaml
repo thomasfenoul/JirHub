@@ -1,6 +1,3 @@
-parameters:
-    env(MONOLOG_LOG_PATH): "%kernel.logs_dir%/%kernel.environment%.log"
-
 monolog:
     handlers:
         main:
@@ -12,7 +9,7 @@ monolog:
             - ^/
         nested:
             type: stream
-            path: '%env(MONOLOG_LOG_PATH)%'
+            path: '%kernel.logs_dir%/%kernel.environment%.log'
             level: debug
         console:
             type:   console
