@@ -5,21 +5,21 @@ monolog:
             action_level: error
             handler: nested
             excluded_404s:
-                # regex: exclude all 404 errors from the logs
-                - ^/
+            # regex: exclude all 404 errors from the logs
+            - ^/
         nested:
             type: stream
-            path: "%kernel.logs_dir%/%kernel.environment%.log"
+            path: '%kernel.logs_dir%/%kernel.environment%.log'
             level: debug
         console:
-            type: console
+            type:   console
             process_psr_3_messages: false
             channels: ["!event", "!doctrine"]
-        deprecation:
-            type: stream
-            path: "%kernel.logs_dir%/%kernel.environment%.deprecations.log"
-        deprecation_filter:
-            type: filter
-            handler: deprecation
-            max_level: info
-            channels: ["php"]
+        slack:
+            type:       slack
+            token:      '%env(SLACK_TOKEN)%'
+            channels:   ["!request", "!event", "!doctrine", "!security"]
+            channel:    '%env(SLACK_CHANNEL)%'
+            bot_name:   JirHub
+            level:      info
+            icon_emoji: ':partyparrot:'
