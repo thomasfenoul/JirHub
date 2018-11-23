@@ -12,11 +12,15 @@ class GitHubHandler
     /** @var SlackHandler */
     private $slackHandler;
 
-    public function __construct(SlackHandler $slackHandler)
+    /** @var JiraHandler */
+    private $jiraHandler;
+
+    public function __construct(SlackHandler $slackHandler, JiraHandler $jiraHandler)
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
         $this->slackHandler = $slackHandler;
+        $this->jiraHandler  = $jiraHandler;
     }
 
     public function getOpenPullRequests(array $filters = []): array
@@ -267,7 +271,8 @@ class GitHubHandler
 
         if (null !== $jiraIssueName) {
             $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueName);
-            $blame   = '';
+            $this->jiraHandler->transitionIssueTo(getenv('JIRA_STATUS_TO_VALIDATE'));
+            $blame = '';
         }
 
         $this->slackHandler->sendMessage(
