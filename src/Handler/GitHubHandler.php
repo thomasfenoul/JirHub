@@ -125,7 +125,7 @@ class GitHubHandler
                 $pullRequest['head']['sha']
             );
         } catch (\Exception $e) {
-            return 'JirHub could not merge this pull request : ' . $e->getMessage();
+            return 'JirHub could not merge pull request : ' . $pullRequest['url'] . "\nError : " . $e->getMessage();
         }
 
         return true;
