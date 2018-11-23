@@ -271,7 +271,7 @@ class GitHubHandler
         }
 
         $this->slackHandler->sendMessage(
-            getenv('SLACK_LINK_TAG') . "\n" . $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame,
+            getenv('SLACK_LINK_TAG') . ' ' . $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame . "\n Pull request : " . $pullRequest['url'],
             getenv('SLACK_REVIEW_CHANNEL')
         );
 

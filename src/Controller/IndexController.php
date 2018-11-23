@@ -44,14 +44,16 @@ class IndexController extends Controller
      */
     public function jiraWebhookAction(Request $request, GitHubHandler $gitHubHandler, SlackHandler $slackHandler)
     {
-        $data = json_decode($request->getContent(), true);
+        $data   = json_decode($request->getContent(), true);
         $status = $data['issue']['fields']['status']['name'];
-        $key = $data['issue']['key'];
+        $key    = $data['issue']['key'];
 
         if ($status === getenv('JIRA_MERGE_STATUS')) {
             $pullRequest = $gitHubHandler->getOpenPullRequestFromJiraIssueKey($key);
-            if ($pullRequest !== null) {
+
+            if (null !== $pullRequest) {
                 $mergeResult = $gitHubHandler->mergePullRequest($pullRequest['head']['ref']);
+
                 if (true !== $mergeResult) {
                     $slackHandler->sendMessage($mergeResult, getenv('SLACK_DEV_CHANNEL'));
                     $gitHubHandler->addLabelToPullRequest(getenv('GITHUB_REVIEW_OK_LABEL'), $pullRequest['number']);

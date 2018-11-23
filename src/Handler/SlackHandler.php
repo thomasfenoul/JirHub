@@ -23,7 +23,7 @@ class SlackHandler
         $this->client->chatPostMessage([
             'username'   => 'JirHub',
             'text'       => $message,
-            'icon_emoji' => ':partyparrot:',
+            'icon_emoji' => ':eyes:',
             'channel'    => $channel,
         ]);
     }
