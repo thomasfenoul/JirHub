@@ -54,7 +54,7 @@ class IndexController extends Controller
                 $mergeResult = $gitHubHandler->mergePullRequest($pullRequest['head']['ref']);
                 if (true !== $mergeResult) {
                     $slackHandler->sendMessage($mergeResult, getenv('SLACK_DEV_CHANNEL'));
-                    $gitHubHandler->addLabelToPullRequest(getenv('GITHUB_REVIEW_OK_LABEL'), $pullRequest['number'])
+                    $gitHubHandler->addLabelToPullRequest(getenv('GITHUB_REVIEW_OK_LABEL'), $pullRequest['number']);
                 }
             }
         }
