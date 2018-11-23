@@ -3,21 +3,20 @@
 namespace App\Handler;
 
 use Github\Client as GitHubClient;
-use Psr\Log\LoggerInterface;
 
 class GitHubHandler
 {
     /** @var GitHubClient */
     private $gitHubClient;
 
-    /** @var LoggerInterface */
-    private $logger;
+    /** @var SlackHandler */
+    private $slackHandler;
 
-    public function __construct(LoggerInterface $logger)
+    public function __construct(SlackHandler $slackHandler)
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
-        $this->logger = $logger;
+        $this->slackHandler = $slackHandler;
     }
 
     public function getOpenPullRequests(array $filters = []): array
@@ -50,6 +49,19 @@ class GitHubHandler
             $isBaseDefault  = strtoupper($openPullRequest['base']['ref']) === strtoupper(getenv('GITHUB_DEFAULT_BASE_BRANCH'));
 
             if ($isHeadMatching && $isBaseDefault) {
+                return $openPullRequest;
+            }
+        }
+
+        return null;
+    }
+
+    public function getOpenPullRequestFromJiraIssueKey(string $jiraIssueName)
+    {
+        $openPullRequests = $this->getOpenPullRequests();
+
+        foreach ($openPullRequests as $openPullRequest) {
+            if (false !== strpos(strtoupper($openPullRequest['head']['ref']), strtoupper($jiraIssueName))) {
                 return $openPullRequest;
             }
         }
@@ -93,6 +105,25 @@ class GitHubHandler
             getenv('GITHUB_REPOSITORY_NAME'),
             $pullRequestNumber
         );
+    }
+
+    public function mergePullRequest(string $headBranchName)
+    {
+        $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
+
+        try {
+            $this->gitHubClient->api('pull_request')->merge(
+                getenv('GITHUB_REPOSITORY_OWNER'),
+                getenv('GITHUB_REPOSITORY_NAME'),
+                $pullRequest['number'],
+                $pullRequest['title'],
+                $pullRequest['head']['sha']
+            );
+        } catch (\Exception $e) {
+            return 'JirHub could not merge this pull request : ' . $e->getMessage();
+        }
+
+        return true;
     }
 
     public function isBranchIgnored(string $branchName): bool
@@ -239,9 +270,9 @@ class GitHubHandler
             $blame   = '';
         }
 
-        $this->logger->info(
-            getenv('SLACK_LINK_TAG') . "\n" .
-            $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame
+        $this->slackHandler->sendMessage(
+            getenv('SLACK_LINK_TAG') . "\n" . $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame,
+            getenv('SLACK_REVIEW_CHANNEL')
         );
 
         return true;

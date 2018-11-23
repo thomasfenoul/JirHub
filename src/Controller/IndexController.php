@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Handler\GitHubHandler;
+use App\Handler\SlackHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,5 +35,30 @@ class IndexController extends Controller
         $env    = $request->get('env');
 
         return new Response((int) $gitHubHandler->applyLabels($branch, $env));
+    }
+
+    /**
+     * @Route("/jira_webhook", name="jira_webhook", methods={"POST"})
+     *
+     * @return Response
+     */
+    public function jiraWebhookAction(Request $request, GitHubHandler $gitHubHandler, SlackHandler $slackHandler)
+    {
+        $data = json_decode($request->getContent(), true);
+        $status = $data['issue']['fields']['status']['name'];
+        $key = $data['issue']['key'];
+
+        if ($status === getenv('JIRA_MERGE_STATUS')) {
+            $pullRequest = $gitHubHandler->getOpenPullRequestFromJiraIssueKey($key);
+            if ($pullRequest !== null) {
+                $mergeResult = $gitHubHandler->mergePullRequest($pullRequest['head']['ref']);
+                if (true !== $mergeResult) {
+                    $slackHandler->sendMessage($mergeResult, getenv('SLACK_DEV_CHANNEL'));
+                    $gitHubHandler->addLabelToPullRequest(getenv('GITHUB_REVIEW_OK_LABEL'), $pullRequest['number'])
+                }
+            }
+        }
+
+        die;
     }
 }
