@@ -61,6 +61,6 @@ class IndexController extends Controller
             }
         }
 
-        die;
+        return new Response();
     }
 }

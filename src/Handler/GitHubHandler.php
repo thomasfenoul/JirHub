@@ -125,7 +125,7 @@ class GitHubHandler
                 $pullRequest['head']['sha']
             );
         } catch (\Exception $e) {
-            return 'JirHub could not merge pull request : ' . $pullRequest['url'] . "\nError : " . $e->getMessage();
+            return 'JirHub could not merge pull request : ' . $pullRequest['html_url'] . "\nError : " . $e->getMessage();
         }
 
         return true;
@@ -277,7 +277,7 @@ class GitHubHandler
         }
 
         $this->slackHandler->sendMessage(
-            getenv('SLACK_LINK_TAG') . ' ' . $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame . "\n Pull request : " . $pullRequest['url'],
+            getenv('SLACK_LINK_TAG') . ' ' . $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame . "\n Pull request : " . $pullRequest['html_url'],
             getenv('SLACK_REVIEW_CHANNEL')
         );
 
