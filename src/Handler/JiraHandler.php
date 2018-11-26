@@ -57,7 +57,7 @@ class JiraHandler
         $this->issueService->transition($issueKey, $transition);
     }
 
-    public static function extractIssueNameFromString(string $str)
+    public static function extractIssueKeyFromString(string $str)
     {
         $matches = [];
         preg_match(getenv('JIRA_ISSUE_REGEX_PATTERN'), $str, $matches);

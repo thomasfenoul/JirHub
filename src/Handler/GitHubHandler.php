@@ -264,15 +264,15 @@ class GitHubHandler
         $this->removeReviewLabels($pullRequest);
         $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest['number']);
 
-        $jiraIssueName = JiraHandler::extractIssueNameFromString($headBranchName)
-            ?? JiraHandler::extractIssueNameFromString($pullRequest['title']);
+        $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
+            ?? JiraHandler::extractIssueKeyFromString($pullRequest['title']);
 
         $subject = $headBranchName;
         $blame   = '(demander à ' . $pullRequest['user']['login'] . ' de retrouver la tâche Jira)';
 
-        if (null !== $jiraIssueName) {
-            $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueName);
-            $this->jiraHandler->transitionIssueTo(getenv('JIRA_STATUS_TO_VALIDATE'));
+        if (null !== $jiraIssueKey) {
+            $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueKey);
+            $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_VALIDATE'));
             $blame = '';
         }
 
