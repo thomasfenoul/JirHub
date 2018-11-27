@@ -253,6 +253,11 @@ class GitHubHandler
         return false;
     }
 
+    public function isValidated(array $pullRequest): bool
+    {
+        return $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_OK_LABEL'));
+    }
+
     public function applyLabels(string $headBranchName, string $reviewBranchName): bool
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
@@ -299,6 +304,7 @@ class GitHubHandler
                     $this->isBranchIgnored($openPullRequest['head']['ref'])
                     || !$this->isPullRequestApproved($openPullRequest['number'])
                     || $this->isDeployed($openPullRequest)
+                    || $this->isValidated($openPullRequest)
                 )
             ) {
                 $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
@@ -310,6 +316,7 @@ class GitHubHandler
                 && !$this->isBranchIgnored($openPullRequest['head']['ref'])
                 && $this->isPullRequestApproved($openPullRequest['number'])
                 && !$this->isDeployed($openPullRequest)
+                && !$this->isValidated($openPullRequest)
             ) {
                 $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
                 $res['added'] += $openPullRequest;
