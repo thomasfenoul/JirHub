@@ -180,6 +180,10 @@ class GitHubHandler
 
     public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = [])
     {
+        if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
+            return true;
+        }
+
         if (empty($pullRequest)) {
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
         }
