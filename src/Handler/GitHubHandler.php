@@ -178,7 +178,7 @@ class GitHubHandler
             || (1 === \count($pullRequests) && $pullRequests[0]['number'] === $pullRequestNumber);
     }
 
-    public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = [])
+    public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = [], bool $force = false)
     {
         if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
             return true;
@@ -186,6 +186,14 @@ class GitHubHandler
 
         if (empty($pullRequest)) {
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
+        }
+
+        if (
+            preg_match(getenv('GITHUB_HEAD_BRANCH_REGEX_PATTERN'), $headBranchName)
+            && $pullRequest['base']['ref'] === getenv('GITHUB_DEFAULT_BASE_BRANCH')
+            && true === $force
+        ) {
+            return true;
         }
 
         if (empty($pullRequest) || null === $pullRequest) {
@@ -262,11 +270,11 @@ class GitHubHandler
         return $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_OK_LABEL'));
     }
 
-    public function applyLabels(string $headBranchName, string $reviewBranchName): bool
+    public function applyLabels(string $headBranchName, string $reviewBranchName, bool $force = false): bool
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        if (!$this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
+        if (!$this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest, $force)) {
             return false;
         }
 

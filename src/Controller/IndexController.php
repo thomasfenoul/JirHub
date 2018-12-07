@@ -20,8 +20,9 @@ class IndexController extends Controller
     {
         $branch = $request->get('branch');
         $env    = $request->get('env');
+        $force  = isset($request->get('force'));
 
-        return new Response($gitHubHandler->checkDeployability($branch, $env));
+        return new Response($gitHubHandler->checkDeployability($branch, $env, [], $force));
     }
 
     /**
@@ -33,6 +34,7 @@ class IndexController extends Controller
     {
         $branch = $request->get('branch');
         $env    = $request->get('env');
+        $force  = isset($request->get('force'));
 
         return new Response((int) $gitHubHandler->applyLabels($branch, $env));
     }
