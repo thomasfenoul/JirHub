@@ -181,7 +181,7 @@ class GitHubHandler
     public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = [], bool $force = false)
     {
         if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
-            return true;
+            return 'OK';
         }
 
         if (empty($pullRequest)) {
@@ -194,7 +194,7 @@ class GitHubHandler
             && true === $force
             && $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'))
         ) {
-            return true;
+            return 'OK';
         }
 
         if (empty($pullRequest) || null === $pullRequest) {
