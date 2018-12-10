@@ -192,6 +192,7 @@ class GitHubHandler
             preg_match(getenv('GITHUB_HEAD_BRANCH_REGEX_PATTERN'), $headBranchName)
             && $pullRequest['base']['ref'] === getenv('GITHUB_DEFAULT_BASE_BRANCH')
             && true === $force
+            && $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'))
         ) {
             return true;
         }
