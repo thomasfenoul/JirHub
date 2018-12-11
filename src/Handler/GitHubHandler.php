@@ -234,6 +234,7 @@ class GitHubHandler
     {
         $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
         $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
+        $reviewLabels[] = getenv('GITHUB_FORCE_LABEL');
 
         foreach ($reviewLabels as $reviewLabel) {
             if ($this->hasLabel($pullRequest, $reviewLabel)) {
@@ -275,7 +276,7 @@ class GitHubHandler
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        if (!$this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest, $force)) {
+        if ('OK' !== $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest, $force)) {
             return false;
         }
 
