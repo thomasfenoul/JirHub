@@ -36,7 +36,7 @@ class IndexController extends Controller
         $env    = $request->get('env');
         $force  = null !== $request->get('force');
 
-        return new Response((int) $gitHubHandler->applyLabels($branch, $env));
+        return new Response((int) $gitHubHandler->applyLabels($branch, $env, $force));
     }
 
     /**

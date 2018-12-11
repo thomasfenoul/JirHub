@@ -197,13 +197,6 @@ class GitHubHandler
             return 'OK';
         }
 
-        echo preg_match(getenv('GITHUB_HEAD_BRANCH_REGEX_PATTERN'), $headBranchName)[0];
-//            $pullRequest['base']['ref'] === getenv('GITHUB_DEFAULT_BASE_BRANCH')  . ' - ' .
-//            (true === $force)  . ' - ' .
-//            $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'));
-
-        die;
-
         if (empty($pullRequest) || null === $pullRequest) {
             echo 'We have not found any pull request with head branch "' . $headBranchName . '".';
 
@@ -283,7 +276,7 @@ class GitHubHandler
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        if (!$this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest, $force)) {
+        if ('OK' !== $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest, $force)) {
             return false;
         }
 
