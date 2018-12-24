@@ -189,22 +189,15 @@ class GitHubHandler
         }
 
         if (
-            preg_match(getenv('GITHUB_HEAD_BRANCH_REGEX_PATTERN'), $headBranchName)
-            && $pullRequest['base']['ref'] === getenv('GITHUB_DEFAULT_BASE_BRANCH')
-            && true === $force
+            true === $force
             && $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'))
+            && $available = $this->isReviewBranchAvailable($reviewBranchName, $pullRequest['number'])
         ) {
             return 'OK';
         }
 
         if (empty($pullRequest) || null === $pullRequest) {
             echo 'We have not found any pull request with head branch "' . $headBranchName . '".';
-
-            die;
-        }
-
-        if ($this->isBranchIgnored($headBranchName)) {
-            echo 'The branch "' . $headBranchName . '" does not need to be reviewed.';
 
             die;
         }
