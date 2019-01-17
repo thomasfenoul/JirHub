@@ -65,8 +65,13 @@ class GitHubHandler
         $openPullRequests = $this->getOpenPullRequests();
 
         foreach ($openPullRequests as $openPullRequest) {
-            if (false !== strpos(strtoupper($openPullRequest['head']['ref']), strtoupper($jiraIssueName))
-                || false !== strpos(strtoupper($openPullRequest['title']), strtoupper($jiraIssueName))) {
+            if (false !== strpos(strtoupper($openPullRequest['head']['ref']), strtoupper($jiraIssueName))) {
+                return $openPullRequest;
+            }
+        }
+
+        foreach ($openPullRequests as $openPullRequest) {
+            if (false !== strpos(strtoupper($openPullRequest['title']), strtoupper($jiraIssueName))) {
                 return $openPullRequest;
             }
         }
