@@ -301,40 +301,68 @@ class GitHubHandler
         return true;
     }
 
-    public function addValidationRequiredLabels(): array
+    public function handleReviewRequiredLabel(array $openPullRequest)
     {
-        $openPullRequests = $this->getOpenPullRequests();
-        $res              = [
-            'removed' => [],
-            'added'   => [],
-        ];
+        if (
+            $this->hasLabel($openPullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+            && (
+                $this->isBranchIgnored($openPullRequest['head']['ref'])
+                || !$this->isPullRequestApproved($openPullRequest['number'])
+                || $this->isDeployed($openPullRequest)
+                || $this->isValidated($openPullRequest)
+            )
+        ) {
+            $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
+        }
 
-        foreach ($openPullRequests as $openPullRequest) {
-            if (
-                $this->hasLabel($openPullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
-                && (
-                    $this->isBranchIgnored($openPullRequest['head']['ref'])
-                    || !$this->isPullRequestApproved($openPullRequest['number'])
-                    || $this->isDeployed($openPullRequest)
-                    || $this->isValidated($openPullRequest)
-                )
-            ) {
-                $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
-                $res['removed'] += $openPullRequest;
-            }
+        if (
+            !$this->hasLabel($openPullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+            && !$this->isBranchIgnored($openPullRequest['head']['ref'])
+            && $this->isPullRequestApproved($openPullRequest['number'])
+            && !$this->isDeployed($openPullRequest)
+            && !$this->isValidated($openPullRequest)
+        ) {
+            $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
+        }
+    }
 
-            if (
-                !$this->hasLabel($openPullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
-                && !$this->isBranchIgnored($openPullRequest['head']['ref'])
-                && $this->isPullRequestApproved($openPullRequest['number'])
-                && !$this->isDeployed($openPullRequest)
-                && !$this->isValidated($openPullRequest)
-            ) {
-                $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
-                $res['added'] += $openPullRequest;
+    public function handleInProgressPullRequest(array $pullRequest)
+    {
+        $labels = explode(',', getenv('GITHUB_IN_PROGRESS_LABELS'));
+
+        foreach ($labels as $label) {
+            if ($this->hasLabel($pullRequest, $label)) {
+                $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
+                    ?? JiraHandler::extractIssueKeyFromString($pullRequest['title']);
+
+                $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_IN_PROGRESS'));
+
+                return true;
             }
         }
 
-        return $res;
+        return false;
+    }
+
+    public function handleInReviewPullRequest(array $pullRequest)
+    {
+    }
+
+    public function synchronize()
+    {
+        $openPullRequests = $this->getOpenPullRequests();
+
+        foreach ($openPullRequests as $openPullRequest) {
+            $this->handleReviewRequiredLabel($openPullRequest);
+
+            if (false === $this->handleInProgressPullRequest($openPullRequest)) {
+                if (false === $this->isPullRequestApproved($openPullRequest['number'])) {
+                    $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
+                        ?? JiraHandler::extractIssueKeyFromString($pullRequest['title']);
+
+                    $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_VALIDATE'));
+                }
+            }
+        }
     }
 }
