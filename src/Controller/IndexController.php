@@ -22,7 +22,7 @@ class IndexController extends Controller
         $env    = $request->get('env');
         $force  = null !== $request->get('force');
 
-        return new Response($gitHubHandler->checkDeployability($branch, $env, [], $force));
+        return new Response($gitHubHandler->checkDeployability($branch, $env, null, $force));
     }
 
     /**
