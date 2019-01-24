@@ -66,4 +66,15 @@ class IndexController extends Controller
 
         return new Response();
     }
+
+    /**
+     * @Route("/test_squash", name="test_squash", methods={"GET"})
+     *
+     * @return Response
+     */
+    public function testSquash(GitHubHandler $gitHubHandler)
+    {
+        $pr = $gitHubHandler->getPullRequest(1188);
+        $gitHubHandler->mergePullRequest($pr, 'squash');
+    }
 }

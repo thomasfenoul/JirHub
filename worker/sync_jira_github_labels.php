@@ -15,9 +15,6 @@ try {
     throw new \RuntimeException("Erreur dans l'initialisation du worker : " . $e->getMessage());
 }
 
-$pr = $gitHubHandler->getPullRequest(1188);
-$gitHubHandler->mergePullRequest($pr, 'squash');
-
 while (true) {
     try {
         $gitHubHandler->synchronize();
