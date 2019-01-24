@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Handler\GitHubHandler;
+use App\Handler\JiraHandler;
 use App\Handler\SlackHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,12 +70,11 @@ class IndexController extends Controller
 
     /**
      * @Route("/test_squash", name="test_squash", methods={"GET"})
-     *
-     * @return Response
      */
-    public function testSquash(GitHubHandler $gitHubHandler)
+    public function testSquash(JiraHandler $jiraHandler)
     {
-        $pr = $gitHubHandler->getPullRequest(1188);
-        $gitHubHandler->mergePullRequest($pr, 'squash');
+        echo json_encode($jiraHandler->getIssue('TA-1698'));
+//        $pr = $gitHubHandler->getPullRequest(1188);
+//        $gitHubHandler->mergePullRequest($pr, 'squash');
     }
 }

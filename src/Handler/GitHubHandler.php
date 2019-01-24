@@ -394,14 +394,14 @@ class GitHubHandler
         foreach ($pullRequests as $pullRequest) {
             $this->handleReviewRequiredLabel($pullRequest);
 
-            if (false === $this->handleInProgressPullRequest($pullRequest)) {
-                if (false === $this->isPullRequestApproved($pullRequest)) {
-                    $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
-                        ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
-
-                    $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_REVIEW'));
-                }
-            }
+//            if (false === $this->handleInProgressPullRequest($pullRequest)) {
+//                if (false === $this->isPullRequestApproved($pullRequest)) {
+//                    $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
+//                        ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
+//
+//                    $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_REVIEW'));
+//                }
+//            }
         }
     }
 }
