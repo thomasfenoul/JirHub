@@ -4,8 +4,8 @@ namespace App\Handler;
 
 use App\Model\PullRequest;
 use Github\Client as GitHubClient;
+use JiraRestApi\Issue\Issue as JiraIssue;
 use JiraRestApi\JiraException;
-use JsonMapper_Exception;
 
 class GitHubHandler
 {
@@ -106,6 +106,18 @@ class GitHubHandler
         }
 
         return null;
+    }
+
+    public function getJiraIssueFromPullRequest(PullRequest $pullRequest): ?JiraIssue
+    {
+        $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
+            ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
+
+        try {
+            return $this->jiraHandler->getIssue($jiraIssueKey);
+        } catch (\Exception $e) {
+            return null;
+        }
     }
 
     public function getPullRequest(int $pullRequestNumber): PullRequest
@@ -338,7 +350,10 @@ class GitHubHandler
         return true;
     }
 
-    public function handleReviewRequiredLabel(PullRequest $pullRequest)
+    /**
+     * @throws JiraException
+     */
+    public function handleReviewRequiredLabel(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
         if (
             $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
@@ -360,26 +375,24 @@ class GitHubHandler
             && !$this->isValidated($pullRequest)
         ) {
             $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
+
+            if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
+                $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_STATUS_TO_VALIDATE'));
+            }
         }
     }
 
     /**
      * @throws JiraException
-     * @throws JsonMapper_Exception
      */
-    public function handleInProgressPullRequest(PullRequest $pullRequest)
+    public function handleInProgressPullRequest(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
         $labels = explode(',', getenv('GITHUB_IN_PROGRESS_LABELS'));
 
         foreach ($labels as $label) {
             if ($this->hasLabel($pullRequest, $label)) {
-                $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
-                    ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
-
-                $issue = $this->jiraHandler->getIssue($jiraIssueKey);
-
-                if ($issue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
-                    $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_IN_PROGRESS'));
+                if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
+                    $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_STATUS_IN_PROGRESS'));
                 }
 
                 return true;
@@ -391,7 +404,6 @@ class GitHubHandler
 
     /**
      * @throws JiraException
-     * @throws JsonMapper_Exception
      */
     public function synchronize()
     {
@@ -399,17 +411,18 @@ class GitHubHandler
 
         /** @var PullRequest $pullRequest */
         foreach ($pullRequests as $pullRequest) {
-            $this->handleReviewRequiredLabel($pullRequest);
+            $jiraIssue = $this->getJiraIssueFromPullRequest($pullRequest);
 
-            if (false === $this->handleInProgressPullRequest($pullRequest)) {
+            if (null === $jiraIssue) {
+                continue;
+            }
+
+            $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
+
+            if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
                 if (false === $this->isPullRequestApproved($pullRequest)) {
-                    $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
-                        ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
-
-                    $issue = $this->jiraHandler->getIssue($jiraIssueKey);
-
-                    if ($issue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
-                        $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_REVIEW'));
+                    if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
+                        $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_STATUS_TO_REVIEW'));
                     }
                 }
             }
