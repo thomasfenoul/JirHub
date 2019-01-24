@@ -2,10 +2,15 @@
 
 namespace App\Handler;
 
+use App\Model\PullRequest;
 use Github\Client as GitHubClient;
+use JiraRestApi\JiraException;
 
 class GitHubHandler
 {
+    const CHANGES_REQUESTED = 'CHANGES_REQUESTED';
+    const APPROVED          = 'APPROVED';
+
     /** @var GitHubClient */
     private $gitHubClient;
 
@@ -23,18 +28,36 @@ class GitHubHandler
         $this->jiraHandler  = $jiraHandler;
     }
 
+    public static function arraysToPullRequests(array $pullRequestsData)
+    {
+        $pullRequests = [];
+
+        foreach ($pullRequestsData as $pullRequestData) {
+            $pullRequests[] = new PullRequest($pullRequestData);
+        }
+
+        return $pullRequests;
+    }
+
+    public function setReviewsOfPullRequest(PullRequest &$pullRequest)
+    {
+        $pullRequest->setReviews(array_reverse($this->getPullRequestReviews($pullRequest)));
+    }
+
     public function getOpenPullRequests(array $filters = []): array
     {
-        return $this->gitHubClient->api('pull_request')->all(
+        $pullRequestsData = $this->gitHubClient->api('pull_request')->all(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             ['state' => 'open'] + $filters
         );
+
+        return self::arraysToPullRequests($pullRequestsData);
     }
 
     public function getOpenPullRequestsWithLabel(string $label)
     {
-        return $this->gitHubClient->api('issue')->all(
+        $pullRequestsData = $this->gitHubClient->api('issue')->all(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             [
@@ -42,18 +65,21 @@ class GitHubHandler
                 'labels' => $label,
             ]
         );
+
+        return self::arraysToPullRequests($pullRequestsData);
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
     {
-        $openPullRequests = $this->getOpenPullRequests();
+        $pullRequests = $this->getOpenPullRequests();
 
-        foreach ($openPullRequests as $openPullRequest) {
-            $isHeadMatching = strtoupper($openPullRequest['head']['ref']) === strtoupper($headBranchName);
-            $isBaseDefault  = strtoupper($openPullRequest['base']['ref']) === strtoupper(getenv('GITHUB_DEFAULT_BASE_BRANCH'));
+        /** @var PullRequest $pullRequest */
+        foreach ($pullRequests as $pullRequest) {
+            $isHeadMatching = strtoupper($pullRequest->getHeadRef()) === strtoupper($headBranchName);
+            $isBaseDefault  = strtoupper($pullRequest->getBaseRef()) === strtoupper(getenv('GITHUB_DEFAULT_BASE_BRANCH'));
 
             if ($isHeadMatching && $isBaseDefault) {
-                return $openPullRequest;
+                return $pullRequest;
             }
         }
 
@@ -62,75 +88,78 @@ class GitHubHandler
 
     public function getOpenPullRequestFromJiraIssueKey(string $jiraIssueName)
     {
-        $openPullRequests = $this->getOpenPullRequests();
+        $pullRequests = $this->getOpenPullRequests();
 
-        foreach ($openPullRequests as $openPullRequest) {
-            if (false !== strpos(strtoupper($openPullRequest['head']['ref']), strtoupper($jiraIssueName))) {
-                return $openPullRequest;
+        /** @var PullRequest $pullRequest */
+        foreach ($pullRequests as $pullRequest) {
+            if (false !== strpos(strtoupper($pullRequest->getHeadRef()), strtoupper($jiraIssueName))) {
+                return $pullRequest;
             }
         }
 
-        foreach ($openPullRequests as $openPullRequest) {
-            if (false !== strpos(strtoupper($openPullRequest['title']), strtoupper($jiraIssueName))) {
-                return $openPullRequest;
+        /** @var PullRequest $pullRequest */
+        foreach ($pullRequests as $pullRequest) {
+            if (false !== strpos(strtoupper($pullRequest->getTitle()), strtoupper($jiraIssueName))) {
+                return $pullRequest;
             }
         }
 
         return null;
     }
 
-    public function getPullRequest(int $pullRequestNumber)
+    public function getPullRequest(int $pullRequestNumber): PullRequest
     {
-        return $this->gitHubClient->api('pull_request')->show(
+        $pullRequestData = $this->gitHubClient->api('pull_request')->show(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             $pullRequestNumber
         );
+
+        return new PullRequest($pullRequestData);
     }
 
-    public function addLabelToPullRequest(string $label, int $pullRequestNumber)
+    public function addLabelToPullRequest(string $label, PullRequest $pullRequest)
     {
         $this->gitHubClient->api('issue')->labels()->add(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequestNumber,
+            $pullRequest->getNumber(),
             $label
         );
     }
 
-    public function removeLabelFromPullRequest(string $label, int $pullRequestNumber)
+    public function removeLabelFromPullRequest(string $label, PullRequest $pullRequest)
     {
         $this->gitHubClient->api('issue')->labels()->remove(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequestNumber,
+            $pullRequest->getNumber(),
             $label
         );
     }
 
-    public function getPullRequestReviews(int $pullRequestNumber)
+    public function getPullRequestReviews(PullRequest $pullRequest)
     {
         return $this->gitHubClient->api('pull_request')->reviews()->all(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequestNumber
+            $pullRequest->getNumber()
         );
     }
 
-    public function mergePullRequest(string $headBranchName)
+    public function mergePullRequest(PullRequest $pullRequest, string $mergeMethod = 'merge')
     {
-        $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
-
         try {
             $this->gitHubClient->api('pull_request')->merge(
                 getenv('GITHUB_REPOSITORY_OWNER'),
                 getenv('GITHUB_REPOSITORY_NAME'),
-                $pullRequest['number'],
-                $pullRequest['title'],
-                $pullRequest['head']['sha']
+                $pullRequest->getNumber(),
+                $pullRequest->getTitle(),
+                $pullRequest->getHeadSha(),
+                $mergeMethod
             );
         } catch (\Exception $e) {
-            return 'JirHub could not merge this pull request : ' . $pullRequest['html_url'] . "\nError : " . $e->getMessage();
+            return 'JirHub could not merge this pull request : ' . $pullRequest->getUrl() . "\nError : " . $e->getMessage();
         }
 
         return true;
@@ -145,17 +174,20 @@ class GitHubHandler
         return \in_array($explodedBranchName[0], $ignoredBranches);
     }
 
-    public function isPullRequestApproved(int $pullRequestNumber): bool
+    public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
-        $reviews      = array_reverse($this->getPullRequestReviews($pullRequestNumber));
+        if (empty($pullRequest->getReviews())) {
+            $this->setReviewsOfPullRequest($pullRequest);
+        }
+
         $approveCount = 0;
 
-        foreach ($reviews as $review) {
-            if ('CHANGES_REQUESTED' === $review['state']) {
+        foreach ($pullRequest->getReviews() as $review) {
+            if (self::CHANGES_REQUESTED === $review['state']) {
                 return false;
             }
 
-            if ('APPROVED' === $review['state']) {
+            if (self::APPROVED === $review['state']) {
                 ++$approveCount;
 
                 if ($approveCount >= getenv('GITHUB_APPROVE_COUNT')) {
@@ -175,28 +207,28 @@ class GitHubHandler
         );
     }
 
-    public function isReviewBranchAvailable(string $reviewBranchName, ?int $pullRequestNumber = null)
+    public function isReviewBranchAvailable(string $reviewBranchName, PullRequest $pullRequest)
     {
         $pullRequests = $this->getOpenPullRequestsWithLabel(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName);
 
         return 0 === \count($pullRequests)
-            || (1 === \count($pullRequests) && $pullRequests[0]['number'] === $pullRequestNumber);
+            || (1 === \count($pullRequests) && $pullRequests[0]->getNumber() === $pullRequest->getNumber());
     }
 
-    public function checkDeployability(string $headBranchName, string $reviewBranchName, array $pullRequest = [], bool $force = false)
+    public function checkDeployability(string $headBranchName, string $reviewBranchName, ?PullRequest $pullRequest = null, bool $force = false)
     {
         if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
             return 'OK';
         }
 
-        if (empty($pullRequest)) {
+        if (null === $pullRequest) {
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
         }
 
         if (
             true === $force
             && $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'))
-            && $available = $this->isReviewBranchAvailable($reviewBranchName, $pullRequest['number'])
+            && $this->isReviewBranchAvailable($reviewBranchName, $pullRequest)
         ) {
             return 'OK';
         }
@@ -213,13 +245,13 @@ class GitHubHandler
             die;
         }
 
-        if (!$this->isReviewBranchAvailable($reviewBranchName, $pullRequest['number'])) {
+        if (!$this->isReviewBranchAvailable($reviewBranchName, $pullRequest)) {
             echo 'The review branch "' . $reviewBranchName . '" is already used by another PR.';
 
             die;
         }
 
-        if (!$this->isPullRequestApproved($pullRequest['number'])) {
+        if (!$this->isPullRequestApproved($pullRequest)) {
             echo 'The pull request with head branch "' . $headBranchName . '" does not have enough approving reviews or has requested changes.';
 
             die;
@@ -228,7 +260,7 @@ class GitHubHandler
         return 'OK';
     }
 
-    public function removeReviewLabels(array $pullRequest)
+    public function removeReviewLabels(PullRequest $pullRequest)
     {
         $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
         $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
@@ -236,23 +268,17 @@ class GitHubHandler
 
         foreach ($reviewLabels as $reviewLabel) {
             if ($this->hasLabel($pullRequest, $reviewLabel)) {
-                $this->removeLabelFromPullRequest($reviewLabel, $pullRequest['number']);
+                $this->removeLabelFromPullRequest($reviewLabel, $pullRequest);
             }
         }
     }
 
-    public function hasLabel(array $pullRequest, string $search)
+    public function hasLabel(PullRequest $pullRequest, string $search)
     {
-        foreach ($pullRequest['labels'] as $pullRequestLabel) {
-            if ($pullRequestLabel['name'] === $search) {
-                return true;
-            }
-        }
-
-        return false;
+        return \in_array($search, $pullRequest->getLabels());
     }
 
-    public function isDeployed(array $pullRequest): bool
+    public function isDeployed(PullRequest $pullRequest): bool
     {
         $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
 
@@ -265,11 +291,14 @@ class GitHubHandler
         return false;
     }
 
-    public function isValidated(array $pullRequest): bool
+    public function isValidated(PullRequest $pullRequest): bool
     {
         return $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_OK_LABEL'));
     }
 
+    /**
+     * @throws JiraException
+     */
     public function applyLabels(string $headBranchName, string $reviewBranchName, bool $force = false): bool
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
@@ -279,13 +308,13 @@ class GitHubHandler
         }
 
         $this->removeReviewLabels($pullRequest);
-        $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest['number']);
+        $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest);
 
         $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
-            ?? JiraHandler::extractIssueKeyFromString($pullRequest['title']);
+            ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
 
         $subject = $headBranchName;
-        $blame   = '(demander à ' . $pullRequest['user']['login'] . ' de retrouver la tâche Jira)';
+        $blame   = '(demander à ' . $pullRequest->getUser() . ' de retrouver la tâche Jira)';
 
         if (null !== $jiraIssueKey) {
             $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueKey);
@@ -294,46 +323,56 @@ class GitHubHandler
         }
 
         $this->slackHandler->sendMessage(
-            getenv('SLACK_LINK_TAG') . ' ' . $subject . ' dispo sur  `' . $reviewBranchName . '` ' . $blame . "\n Pull request : " . $pullRequest['html_url'],
+            sprintf(
+                "%s %s dispo sur `%s` %s\n Pull Request : %s",
+                getenv('SLACK_LINK_TAG'),
+                $subject,
+                $reviewBranchName,
+                $blame,
+                $pullRequest->getUrl()
+            ),
             getenv('SLACK_REVIEW_CHANNEL')
         );
 
         return true;
     }
 
-    public function handleReviewRequiredLabel(array $openPullRequest)
+    public function handleReviewRequiredLabel(PullRequest $pullRequest)
     {
         if (
-            $this->hasLabel($openPullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+            $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
             && (
-                $this->isBranchIgnored($openPullRequest['head']['ref'])
-                || !$this->isPullRequestApproved($openPullRequest['number'])
-                || $this->isDeployed($openPullRequest)
-                || $this->isValidated($openPullRequest)
+                $this->isBranchIgnored($pullRequest->getHeadRef())
+                || !$this->isPullRequestApproved($pullRequest)
+                || $this->isDeployed($pullRequest)
+                || $this->isValidated($pullRequest)
             )
         ) {
-            $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
+            $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
         }
 
         if (
-            !$this->hasLabel($openPullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
-            && !$this->isBranchIgnored($openPullRequest['head']['ref'])
-            && $this->isPullRequestApproved($openPullRequest['number'])
-            && !$this->isDeployed($openPullRequest)
-            && !$this->isValidated($openPullRequest)
+            !$this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+            && !$this->isBranchIgnored($pullRequest->getHeadRef())
+            && $this->isPullRequestApproved($pullRequest)
+            && !$this->isDeployed($pullRequest)
+            && !$this->isValidated($pullRequest)
         ) {
-            $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $openPullRequest['number']);
+            $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
         }
     }
 
-    public function handleInProgressPullRequest(array $pullRequest)
+    /**
+     * @throws JiraException
+     */
+    public function handleInProgressPullRequest(PullRequest $pullRequest)
     {
         $labels = explode(',', getenv('GITHUB_IN_PROGRESS_LABELS'));
 
         foreach ($labels as $label) {
             if ($this->hasLabel($pullRequest, $label)) {
-                $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
-                    ?? JiraHandler::extractIssueKeyFromString($pullRequest['title']);
+                $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
+                    ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
 
                 $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_IN_PROGRESS'));
 
@@ -344,23 +383,23 @@ class GitHubHandler
         return false;
     }
 
-    public function handleInReviewPullRequest(array $pullRequest)
-    {
-    }
-
+    /**
+     * @throws JiraException
+     */
     public function synchronize()
     {
-        $openPullRequests = $this->getOpenPullRequests();
+        $pullRequests = $this->getOpenPullRequests();
 
-        foreach ($openPullRequests as $openPullRequest) {
-            $this->handleReviewRequiredLabel($openPullRequest);
+        /** @var PullRequest $pullRequest */
+        foreach ($pullRequests as $pullRequest) {
+            $this->handleReviewRequiredLabel($pullRequest);
 
-            if (false === $this->handleInProgressPullRequest($openPullRequest)) {
-                if (false === $this->isPullRequestApproved($openPullRequest['number'])) {
-                    $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
-                        ?? JiraHandler::extractIssueKeyFromString($pullRequest['title']);
+            if (false === $this->handleInProgressPullRequest($pullRequest)) {
+                if (false === $this->isPullRequestApproved($pullRequest)) {
+                    $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
+                        ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
 
-                    $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_VALIDATE'));
+                    $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_REVIEW'));
                 }
             }
         }

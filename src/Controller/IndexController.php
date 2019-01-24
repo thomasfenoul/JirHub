@@ -50,7 +50,7 @@ class IndexController extends Controller
         $status = $data['issue']['fields']['status']['name'];
         $key    = $data['issue']['key'];
 
-        if ($status === getenv('JIRA_MERGE_STATUS')) {
+        if ($status === getenv('JIRA_STATUS_DONE')) {
             $pullRequest = $gitHubHandler->getOpenPullRequestFromJiraIssueKey($key);
 
             if (null !== $pullRequest) {
