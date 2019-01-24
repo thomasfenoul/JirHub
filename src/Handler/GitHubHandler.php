@@ -378,7 +378,7 @@ class GitHubHandler
 
                 $issue = $this->jiraHandler->getIssue($jiraIssueKey);
 
-                if ($issue['fields']['status']['name'] !== getenv('JIRA_STATUS_IN_PROGRESS')) {
+                if ($issue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
                     $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_IN_PROGRESS'));
                 }
 
@@ -408,7 +408,7 @@ class GitHubHandler
 
                     $issue = $this->jiraHandler->getIssue($jiraIssueKey);
 
-                    if ($issue['fields']['status']['name'] !== getenv('JIRA_STATUS_TO_REVIEW')) {
+                    if ($issue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
                         $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_REVIEW'));
                     }
                 }
