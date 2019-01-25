@@ -72,7 +72,7 @@ class IndexController extends Controller
      */
     public function testAc(GitHubHandler $gitHubHandler)
     {
-        $res = $gitHubHandler->getPullRequest(1208);
+        $res = $gitHubHandler->getPullRequest(1208, true);
 
         return new Response(json_encode($res));
     }
