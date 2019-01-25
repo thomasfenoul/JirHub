@@ -113,6 +113,10 @@ class GitHubHandler
         $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
             ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
 
+        if (null === $jiraIssueKey) {
+            return null;
+        }
+
         try {
             return $this->jiraHandler->getIssue($jiraIssueKey);
         } catch (\Exception $e) {
