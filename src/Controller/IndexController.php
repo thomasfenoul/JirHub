@@ -66,4 +66,14 @@ class IndexController extends Controller
 
         return new Response();
     }
+
+    /**
+     * @Route("/test", name="test", methods={"GET"})
+     */
+    public function testAc(GitHubHandler $gitHubHandler)
+    {
+        $res = $gitHubHandler->getPullRequest(1208);
+
+        echo json_encode($res);
+    }
 }

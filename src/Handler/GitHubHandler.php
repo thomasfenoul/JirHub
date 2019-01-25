@@ -124,13 +124,17 @@ class GitHubHandler
         }
     }
 
-    public function getPullRequest(int $pullRequestNumber): PullRequest
+    public function getPullRequest(int $pullRequestNumber, bool $test = false): PullRequest
     {
         $pullRequestData = $this->gitHubClient->api('pull_request')->show(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             $pullRequestNumber
         );
+
+        if (false !== $test) {
+            return $pullRequestData;
+        }
 
         return new PullRequest($pullRequestData);
     }
