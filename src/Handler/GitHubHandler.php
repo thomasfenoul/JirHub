@@ -418,7 +418,7 @@ class GitHubHandler
 
     public function updatePullRequestBody(PullRequest $pullRequest, string $body)
     {
-        $pullRequestData = $this->gitHubClient->api('pull_request')->show(
+        $pullRequestData = $this->gitHubClient->api('pull_request')->update(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             $pullRequest->getNumber(),
