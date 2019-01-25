@@ -6,6 +6,7 @@ class PullRequest
 {
     private $number;
     private $title;
+    private $body;
     private $headRef;
     private $baseRef;
     private $url;
@@ -18,6 +19,7 @@ class PullRequest
     {
         $this->number  = $pullRequestData['number'];
         $this->title   = $pullRequestData['title'];
+        $this->body    = $pullRequestData['body'];
         $this->headRef = $pullRequestData['head']['ref'];
         $this->baseRef = $pullRequestData['base']['ref'];
         $this->url     = $pullRequestData['html_url'];
@@ -39,6 +41,11 @@ class PullRequest
     public function getTitle(): string
     {
         return $this->title;
+    }
+
+    public function getBody(): string
+    {
+        return $this->body;
     }
 
     public function getHeadRef(): string

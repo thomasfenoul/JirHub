@@ -124,17 +124,13 @@ class GitHubHandler
         }
     }
 
-    public function getPullRequest(int $pullRequestNumber, bool $test = false)
+    public function getPullRequest(int $pullRequestNumber): PullRequest
     {
         $pullRequestData = $this->gitHubClient->api('pull_request')->show(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             $pullRequestNumber
         );
-
-        if (false !== $test) {
-            return $pullRequestData;
-        }
 
         return new PullRequest($pullRequestData);
     }
@@ -410,6 +406,28 @@ class GitHubHandler
         return false;
     }
 
+    public function addJiraLinkToDescription(PullRequest $pullRequest, JiraIssue $jiraIssue)
+    {
+        $pullRequestBody = $pullRequest->getBody();
+        $jiraIssueUrl    = JiraHandler::buildIssueUrlFromIssueName($jiraIssue->key);
+
+        if (false === \strpos($pullRequestBody, $jiraIssueUrl)) {
+            $this->updatePullRequestBody($pullRequest, $jiraIssueUrl . "\n\n" . $pullRequestBody);
+        }
+    }
+
+    public function updatePullRequestBody(PullRequest $pullRequest, string $body)
+    {
+        $pullRequestData = $this->gitHubClient->api('pull_request')->show(
+            getenv('GITHUB_REPOSITORY_OWNER'),
+            getenv('GITHUB_REPOSITORY_NAME'),
+            $pullRequest->getNumber(),
+            ['body' => $body]
+        );
+
+        return new PullRequest($pullRequestData);
+    }
+
     /**
      * @throws JiraException
      */
@@ -424,6 +442,8 @@ class GitHubHandler
             if (null === $jiraIssue) {
                 continue;
             }
+
+            $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
 
             $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
 
