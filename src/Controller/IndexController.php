@@ -74,6 +74,6 @@ class IndexController extends Controller
     {
         $res = $gitHubHandler->getPullRequest(1208);
 
-        echo json_encode($res);
+        return new Response(json_encode($res));
     }
 }
