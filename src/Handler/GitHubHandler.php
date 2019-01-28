@@ -445,6 +445,10 @@ class GitHubHandler
 
             $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
 
+            if ($jiraIssue->fields->status->name === getenv('JIRA_STATUS_BLOCKED')) {
+                continue;
+            }
+
             $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
 
             if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
