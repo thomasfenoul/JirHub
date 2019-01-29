@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Handler\GitHubHandler;
+use App\Handler\JiraHandler;
 use App\Handler\SlackHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
@@ -65,5 +66,15 @@ class IndexController extends Controller
         }
 
         return new Response();
+    }
+
+    /**
+     * @Route("/test_j", name="test_j", methods={"GET"})
+     *
+     * @return Response
+     */
+    public function testJ(JiraHandler $jiraHandler)
+    {
+        return new Response(json_encode($jiraHandler->getIssue('TA-1603')));
     }
 }
