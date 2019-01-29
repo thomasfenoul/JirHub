@@ -48,10 +48,10 @@ class JiraHandler
     /**
      * @throws JiraException
      */
-    public function transitionIssueTo(string $issueKey, string $transitionName)
+    public function transitionIssueTo(string $issueKey, int $transitionId)
     {
         $transition = new Transition();
-        $transition->setTransitionName($transitionName);
+        $transition->setTransitionId($transitionId);
         $transition->setCommentBody('JirHub performed a transition.');
 
         $this->issueService->transition($issueKey, $transition);

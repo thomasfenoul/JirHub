@@ -335,7 +335,7 @@ class GitHubHandler
 
         if (null !== $jiraIssueKey) {
             $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueKey);
-            $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_STATUS_TO_VALIDATE'));
+            $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
             $blame = '';
         }
 
@@ -381,7 +381,7 @@ class GitHubHandler
             $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
 
             if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
-                $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_STATUS_TO_VALIDATE'));
+                $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
             }
         }
     }
@@ -396,7 +396,7 @@ class GitHubHandler
         foreach ($labels as $label) {
             if ($this->hasLabel($pullRequest, $label)) {
                 if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
-                    $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_STATUS_IN_PROGRESS'));
+                    $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_IN_PROGRESS'));
                 }
 
                 return true;
@@ -454,7 +454,7 @@ class GitHubHandler
             if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
                 if (false === $this->isPullRequestApproved($pullRequest)) {
                     if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
-                        $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_STATUS_TO_REVIEW'));
+                        $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
                     }
                 }
             }
