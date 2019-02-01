@@ -242,6 +242,12 @@ class GitHubHandler
             $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
         }
 
+        if (null === $pullRequest) {
+            echo 'Pull Request not found.';
+
+            die;
+        }
+
         if (
             true === $force
             && $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'))
