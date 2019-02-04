@@ -50,7 +50,7 @@ class GitHubHandler
         $pullRequestsData = $this->gitHubClient->api('pull_request')->all(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
-            ['state' => 'open'] + $filters
+            ['state' => 'open', 'per_page' => 50] + $filters
         );
 
         return self::arraysToPullRequests($pullRequestsData);
@@ -62,8 +62,9 @@ class GitHubHandler
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
             [
-                'state'  => 'open',
-                'labels' => $label,
+                'state'    => 'open',
+                'per_page' => 50,
+                'labels'   => $label,
             ]
         );
 
