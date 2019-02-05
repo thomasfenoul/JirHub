@@ -1,0 +1,42 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+<h2>Environements de review :</h2>
+<table border="1">
+        {% for env in review_environments %}
+                <tr>
+                        <th style="font-size: 1.1rem">{{ env.name }}</th>
+                        {% if env.pullRequest is null %}
+                                <td><span style="color: green"><b>DISPONIBLE</b></span></td>
+                        {% else %}
+                                <td><span>{{ env.pullRequest.getTitle }}</span></td>
+                                <td>
+                                        <a href="{{ env.pullRequest.getUrl }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>
+                                </td>
+                        {% endif %}
+
+                </tr>
+        {% endfor %}
+</table>
+
+
+<h2>Pull requests à déployer en review :</h2>
+<table border="1">
+        {% for pullRequest in pull_requests_to_deploy %}
+                <tr>
+                        <th style="font-size: 1.1rem;text-align:left">{{ pullRequest.getTitle }}</th>
+                        <td><a href="{{ pullRequest.getUrl }}" target="_blank"><i class="fab fa-github"></i>GitHub</a></th>
+                </tr>
+        {% endfor %}
+</table>
+
+<h2>Pull requests à merger :</h2>
+<table border="1">
+    {% for pullRequest in pull_requests_to_merge_on_dev %}
+        <tr>
+            <th style="font-size: 1.1rem;text-align:left">{{ pullRequest.getTitle }}</th>
+            <td><a href="{{ pullRequest.getUrl }}" target="_blank"><i class="fab fa-github"></i>GitHub</a></th>
+        </tr>
+    {% endfor %}
+</table>
+{% endblock body %}

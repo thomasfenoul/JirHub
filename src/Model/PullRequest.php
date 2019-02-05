@@ -20,10 +20,10 @@ class PullRequest
         $this->number  = $pullRequestData['number'];
         $this->title   = $pullRequestData['title'];
         $this->body    = $pullRequestData['body'];
-        $this->headRef = $pullRequestData['head']['ref'];
-        $this->baseRef = $pullRequestData['base']['ref'];
+        $this->headRef = $pullRequestData['head']['ref'] ?? null;
+        $this->baseRef = $pullRequestData['base']['ref'] ?? null;
         $this->url     = $pullRequestData['html_url'];
-        $this->headSha = $pullRequestData['head']['sha'];
+        $this->headSha = $pullRequestData['head']['sha'] ?? null;
         $this->user    = $pullRequestData['user']['login'];
         $this->labels  = [];
         $this->reviews = [];

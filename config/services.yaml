@@ -37,3 +37,7 @@ services:
 
     App\Handler\JiraHandler:
         public: true
+
+    App\Dashboard\Query\ReviewEnvironments: '@App\Dashboard\Query\Adapter\FromGitHubHandlerReviewEnvironments'
+    App\Dashboard\Query\PullRequestsToDeploy: '@App\Dashboard\Query\Adapter\FromGitHubHandlerPullRequestsToDeploy'
+    App\Dashboard\Query\PullRequestsToMergeOnDev: '@App\Dashboard\Query\Adapter\FromGitHubHandlerPullRequestsToMergeOnDev'
