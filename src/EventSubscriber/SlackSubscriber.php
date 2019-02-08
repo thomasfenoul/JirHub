@@ -8,7 +8,6 @@ use App\Handler\JiraHandler;
 use JoliCode\Slack\Api\Client;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
 
 class SlackSubscriber implements EventSubscriberInterface
 {
@@ -23,7 +22,6 @@ class SlackSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::EXCEPTION  => 'onKernelException',
             LabelsAppliedEvent::NAME => 'onLabelsApplied'
         ];
     }
