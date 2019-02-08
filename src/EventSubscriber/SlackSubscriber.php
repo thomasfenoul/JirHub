@@ -31,7 +31,7 @@ class SlackSubscriber implements EventSubscriberInterface
         try {
             $this->sendMessage(
                 sprintf(
-                    'JirHub could not merge this pull request : %s \nError : %s',
+                    "JirHub could not merge this pull request : %s \nError : %s",
                     $event->getPullRequest()->getUrl(),
                     $event->getMessage()
                 ),
