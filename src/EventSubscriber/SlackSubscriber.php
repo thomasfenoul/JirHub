@@ -3,12 +3,10 @@
 namespace App\EventSubscriber;
 
 use App\Event\LabelsAppliedEvent;
-use App\Exception\PullRequestMergeFailure;
+use App\Event\PullRequestMergeFailureEvent;
 use App\Handler\JiraHandler;
 use JoliCode\Slack\Api\Client;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
-use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
-use Symfony\Component\HttpKernel\KernelEvents;
 
 class SlackSubscriber implements EventSubscriberInterface
 {
@@ -23,25 +21,24 @@ class SlackSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            KernelEvents::EXCEPTION  => 'onKernelException',
             LabelsAppliedEvent::NAME => 'onLabelsApplied',
+            PullRequestMergeFailureEvent::NAME => 'onPrFail'
         ];
     }
 
-    public function onKernelException(GetResponseForExceptionEvent $event)
+    public function onPrFail(PullRequestMergeFailureEvent $event)
     {
-        if ($event->getException() instanceof PullRequestMergeFailure) {
-            try {
-                $this->sendMessage(
-                    sprintf(
-                        'JirHub could not merge this pull request : %s \nError : %s',
-                        $event->getException()->getPullRequest()->getUrl(),
-                        $event->getException()->getPrevious()->getMessage()
-                    ),
-                    getenv('SLACK_DEV_CHANNEL')
-                );
-            } catch (\Throwable $t) {
-            }
+        try {
+            $this->sendMessage(
+                sprintf(
+                    'JirHub could not merge this pull request : %s \nError : %s',
+                    $event->getPullRequest()->getUrl(),
+                    $event->getMessage()
+                ),
+                getenv('SLACK_DEV_CHANNEL')
+            );
+        } catch (\Throwable $t) {
+
         }
     }
 
@@ -53,7 +50,7 @@ class SlackSubscriber implements EventSubscriberInterface
 
             if (null !== $event->getJiraIssueKey()) {
                 $subject = JiraHandler::buildIssueUrlFromIssueName($event->getJiraIssueKey());
-                $blame   = '';
+                $blame = '';
             }
 
             $this->sendMessage(
@@ -68,6 +65,7 @@ class SlackSubscriber implements EventSubscriberInterface
                 getenv('SLACK_REVIEW_CHANNEL')
             );
         } catch (\Throwable $t) {
+
         }
     }
 

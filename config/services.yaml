@@ -38,10 +38,6 @@ services:
     App\Handler\JiraHandler:
         public: true
 
-    App\EventSubscriber\SlackSubscriber:
-        tags:
-            - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
-
     JoliCode\Slack\Api\Client:
         factory: ['JoliCode\Slack\ClientFactory', create]
         arguments: ['%env(SLACK_TOKEN)%']

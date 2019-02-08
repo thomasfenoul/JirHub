@@ -4,7 +4,7 @@ namespace App\Handler;
 
 use App\Event\LabelsAppliedEvent;
 use App\Event\PullRequestMergedEvent;
-use App\Exception\PullRequestMergeFailure;
+use App\Event\PullRequestMergeFailureEvent;
 use App\Model\PullRequest;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
@@ -29,8 +29,8 @@ class GitHubHandler
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
-        $this->jiraHandler     = $jiraHandler;
-        $this->eventDispatcher = $eventDispatcher;
+        $this->jiraHandler  = $jiraHandler;
+        $this->eventDispatcher  = $eventDispatcher;
     }
 
     public static function arraysToPullRequests(array $pullRequestsData)
@@ -169,9 +169,6 @@ class GitHubHandler
         );
     }
 
-    /**
-     * @throws PullRequestMergeFailure
-     */
     public function mergePullRequest(PullRequest $pullRequest, string $mergeMethod = 'merge')
     {
         try {
@@ -184,7 +181,7 @@ class GitHubHandler
                 $mergeMethod
             );
         } catch (\Exception $e) {
-            throw (new PullRequestMergeFailure())->setPullRequest($pullRequest);
+            $this->eventDispatcher->dispatch(PullRequestMergeFailureEvent::NAME, new PullRequestMergeFailureEvent($pullRequest, $e->getMessage()));
         }
 
         $this->eventDispatcher->dispatch(PullRequestMergedEvent::NAME, new PullRequestMergedEvent($pullRequest));
@@ -359,7 +356,7 @@ class GitHubHandler
     /**
      * @throws JiraException
      */
-    public function handleReviewRequiredLabel(PullRequest $pullRequest, ?JiraIssue $jiraIssue = null)
+    public function handleReviewRequiredLabel(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
         if (
             $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
@@ -382,7 +379,7 @@ class GitHubHandler
         ) {
             $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
 
-            if (null !== $jiraIssue && $jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
+            if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
                 $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
             }
         }
@@ -441,17 +438,17 @@ class GitHubHandler
         foreach ($pullRequests as $pullRequest) {
             $jiraIssue = $this->getJiraIssueFromPullRequest($pullRequest);
 
-            $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
-
             if (null === $jiraIssue) {
                 continue;
             }
 
             $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
 
-            if (\in_array($jiraIssue->fields->status->name, [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')])) {
+            if ($jiraIssue->fields->status->name === getenv('JIRA_STATUS_BLOCKED')) {
                 continue;
             }
+
+            $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
 
             if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
                 if (false === $this->isPullRequestApproved($pullRequest)) {
