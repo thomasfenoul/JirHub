@@ -2,10 +2,15 @@
 
 namespace App\Handler;
 
+use App\Event\LabelsAppliedEvent;
+use App\Event\PullRequestMergedEvent;
+use App\Event\PullRequestMergeFailureEvent;
+use App\Exception\PullRequestMergeFailure;
 use App\Model\PullRequest;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
 use JiraRestApi\JiraException;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class GitHubHandler
 {
@@ -15,18 +20,18 @@ class GitHubHandler
     /** @var GitHubClient */
     private $gitHubClient;
 
-    /** @var SlackHandler */
-    private $slackHandler;
-
     /** @var JiraHandler */
     private $jiraHandler;
 
-    public function __construct(SlackHandler $slackHandler, JiraHandler $jiraHandler)
+    /** @var EventDispatcherInterface $eventDispatcher */
+    protected $eventDispatcher;
+
+    public function __construct(JiraHandler $jiraHandler, EventDispatcherInterface $eventDispatcher)
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
-        $this->slackHandler = $slackHandler;
         $this->jiraHandler  = $jiraHandler;
+        $this->eventDispatcher  = $eventDispatcher;
     }
 
     public static function arraysToPullRequests(array $pullRequestsData)
@@ -165,6 +170,9 @@ class GitHubHandler
         );
     }
 
+    /**
+     * @throws PullRequestMergeFailure
+     */
     public function mergePullRequest(PullRequest $pullRequest, string $mergeMethod = 'merge')
     {
         try {
@@ -177,10 +185,10 @@ class GitHubHandler
                 $mergeMethod
             );
         } catch (\Exception $e) {
-            return 'JirHub could not merge this pull request : ' . $pullRequest->getUrl() . "\nError : " . $e->getMessage();
+            throw (new PullRequestMergeFailure())->setPullRequest($pullRequest);
         }
 
-        return true;
+        $this->eventDispatcher->dispatch(PullRequestMergedEvent::NAME, new PullRequestMergedEvent($pullRequest));
     }
 
     public function isBranchIgnored(string $branchName): bool
@@ -337,25 +345,13 @@ class GitHubHandler
         $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
             ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
 
-        $subject = $headBranchName;
-        $blame   = '(demander à ' . $pullRequest->getUser() . ' de retrouver la tâche Jira)';
-
         if (null !== $jiraIssueKey) {
-            $subject = JiraHandler::buildIssueUrlFromIssueName($jiraIssueKey);
             $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
-            $blame = '';
         }
 
-        $this->slackHandler->sendMessage(
-            sprintf(
-                "%s %s dispo sur `%s` %s\n Pull Request : %s",
-                getenv('SLACK_LINK_TAG'),
-                $subject,
-                $reviewBranchName,
-                $blame,
-                $pullRequest->getUrl()
-            ),
-            getenv('SLACK_REVIEW_CHANNEL')
+        $this->eventDispatcher->dispatch(
+            LabelsAppliedEvent::NAME,
+            new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey)
         );
 
         return true;
