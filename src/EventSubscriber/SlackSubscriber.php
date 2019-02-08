@@ -24,7 +24,7 @@ class SlackSubscriber implements EventSubscriberInterface
     {
         return [
             KernelEvents::EXCEPTION  => 'onKernelException',
-            LabelsAppliedEvent::NAME => 'onLabelsApplied'
+            LabelsAppliedEvent::NAME => 'onLabelsApplied',
         ];
     }
 
@@ -41,7 +41,6 @@ class SlackSubscriber implements EventSubscriberInterface
                     getenv('SLACK_DEV_CHANNEL')
                 );
             } catch (\Throwable $t) {
-
             }
         }
     }
@@ -54,7 +53,7 @@ class SlackSubscriber implements EventSubscriberInterface
 
             if (null !== $event->getJiraIssueKey()) {
                 $subject = JiraHandler::buildIssueUrlFromIssueName($event->getJiraIssueKey());
-                $blame = '';
+                $blame   = '';
             }
 
             $this->sendMessage(
@@ -69,7 +68,6 @@ class SlackSubscriber implements EventSubscriberInterface
                 getenv('SLACK_REVIEW_CHANNEL')
             );
         } catch (\Throwable $t) {
-
         }
     }
 

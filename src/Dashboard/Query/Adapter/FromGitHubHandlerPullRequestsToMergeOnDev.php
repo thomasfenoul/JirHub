@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Dashboard\Query\Adapter;
-
 
 use App\Dashboard\Query\PullRequestsToMergeOnDev;
 use App\Handler\GitHubHandler;
@@ -19,6 +17,6 @@ class FromGitHubHandlerPullRequestsToMergeOnDev implements PullRequestsToMergeOn
 
     public function fetch(): array
     {
-        return $this->handler->getOpenPullRequestsWithLabel("~validated");
+        return $this->handler->getOpenPullRequestsWithLabel('~validated');
     }
 }

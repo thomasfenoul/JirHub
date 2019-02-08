@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Event;
-
 
 use App\Model\PullRequest;
 use Symfony\Component\EventDispatcher\Event;
@@ -22,9 +20,9 @@ class LabelsAppliedEvent extends Event
 
     public function __construct(PullRequest $pullRequest, string $reviewEnvironment, ?string $jiraIssueKey)
     {
-        $this->pullRequest = $pullRequest;
+        $this->pullRequest       = $pullRequest;
         $this->reviewEnvironment = $reviewEnvironment;
-        $this->jiraIssueKey = $jiraIssueKey;
+        $this->jiraIssueKey      = $jiraIssueKey;
     }
 
     public function getPullRequest(): PullRequest

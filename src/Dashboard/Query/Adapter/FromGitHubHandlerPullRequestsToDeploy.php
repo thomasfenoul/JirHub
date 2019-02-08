@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Dashboard\Query\Adapter;
-
 
 use App\Dashboard\Query\PullRequestsToDeploy;
 use App\Handler\GitHubHandler;
@@ -19,6 +17,6 @@ class FromGitHubHandlerPullRequestsToDeploy implements PullRequestsToDeploy
 
     public function fetch(): array
     {
-        return $this->handler->getOpenPullRequestsWithLabel("~validation-required");
+        return $this->handler->getOpenPullRequestsWithLabel('~validation-required');
     }
 }

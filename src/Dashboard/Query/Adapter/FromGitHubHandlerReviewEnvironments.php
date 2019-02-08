@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Dashboard\Query\Adapter;
-
 
 use App\Dashboard\Query\ReviewEnvironments;
 use App\Handler\GitHubHandler;
@@ -23,11 +21,11 @@ class FromGitHubHandlerReviewEnvironments implements ReviewEnvironments
         $environments = [
             new ReviewEnvironment('red'),
             new ReviewEnvironment('blue'),
-            new ReviewEnvironment('green')
+            new ReviewEnvironment('green'),
         ];
 
         foreach ($environments as $environment) {
-            $pullRequestsOnEnvironment = $this->handler->getOpenPullRequestsWithLabel("~validation-" . $environment->getName());
+            $pullRequestsOnEnvironment = $this->handler->getOpenPullRequestsWithLabel('~validation-' . $environment->getName());
 
             if (!empty($pullRequestsOnEnvironment)) {
                 $environment->setPullRequest($pullRequestsOnEnvironment[0]);

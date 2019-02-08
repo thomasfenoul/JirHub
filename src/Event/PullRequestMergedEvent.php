@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Event;
-
 
 use App\Model\PullRequest;
 use Symfony\Component\EventDispatcher\Event;

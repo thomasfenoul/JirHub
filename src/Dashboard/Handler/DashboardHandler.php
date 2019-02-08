@@ -23,22 +23,21 @@ class DashboardHandler
     /** @var PullRequestsToMergeOnDev */
     protected $pullRequestsToMergeOnDev;
 
-
     public function __construct(
         ReviewEnvironments $reviewEnvironments,
         PullRequestsToDeploy $pullRequestsToDeploy,
         PullRequestsToMergeOnDev $pullRequestsToMergeOnDev
     ) {
-        $this->reviewEnvironments = $reviewEnvironments;
-        $this->pullRequestsToDeploy = $pullRequestsToDeploy;
+        $this->reviewEnvironments       = $reviewEnvironments;
+        $this->pullRequestsToDeploy     = $pullRequestsToDeploy;
         $this->pullRequestsToMergeOnDev = $pullRequestsToMergeOnDev;
     }
 
     public function getData()
     {
         return [
-            self::REVIEW_ENVIRONMENTS => $this->reviewEnvironments->fetch(),
-            self::PULL_REQUEST_TO_DEPLOY => $this->pullRequestsToDeploy->fetch(),
+            self::REVIEW_ENVIRONMENTS          => $this->reviewEnvironments->fetch(),
+            self::PULL_REQUEST_TO_DEPLOY       => $this->pullRequestsToDeploy->fetch(),
             self::PULL_REQUEST_TO_MERGE_ON_DEV => $this->pullRequestsToMergeOnDev->fetch(),
         ];
     }

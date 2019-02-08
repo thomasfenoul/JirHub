@@ -19,10 +19,9 @@ class OnPullRequestMergedGitHubSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            PullRequestMergedEvent::NAME => 'updatePullRequest'
+            PullRequestMergedEvent::NAME => 'updatePullRequest',
         ];
     }
-
 
     public function updatePullRequest(PullRequestMergedEvent $event)
     {
@@ -30,7 +29,6 @@ class OnPullRequestMergedGitHubSubscriber implements EventSubscriberInterface
             $this->gitHubHandler->removeReviewLabels($event->getPullRequest());
             $this->gitHubHandler->addLabelToPullRequest(getenv('GITHUB_REVIEW_OK_LABEL'), $event->getPullRequest());
         } catch (\Throwable $t) {
-
         }
     }
 }

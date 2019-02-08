@@ -13,7 +13,6 @@ class DashboardController extends Controller
 
     /**
      * DashboardController constructor.
-     * @param DashboardHandler $handler
      */
     public function __construct(DashboardHandler $handler)
     {

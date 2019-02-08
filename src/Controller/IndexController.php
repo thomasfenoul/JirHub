@@ -31,13 +31,14 @@ class IndexController extends Controller
         $env    = $request->get('env');
         $force  = null !== $request->get('force');
 
-        return new Response((int)$gitHubHandler->applyLabels($branch, $env, $force));
+        return new Response((int) $gitHubHandler->applyLabels($branch, $env, $force));
     }
 
     /**
      * @Route("/jira_webhook", name="jira_webhook", methods={"POST"})
      */
-    public function jiraWebhookAction(Request $request, GitHubHandler $gitHubHandler): Response {
+    public function jiraWebhookAction(Request $request, GitHubHandler $gitHubHandler): Response
+    {
         $data   = json_decode($request->getContent(), true);
         $status = $data['issue']['fields']['status']['name'];
         $key    = $data['issue']['key'];

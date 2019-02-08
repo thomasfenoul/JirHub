@@ -1,8 +1,6 @@
 <?php
 
-
 namespace App\Model;
-
 
 class ReviewEnvironment
 {
@@ -14,7 +12,7 @@ class ReviewEnvironment
 
     public function __construct(string $name, ?PullRequest $pullRequest = null)
     {
-        $this->name = $name;
+        $this->name        = $name;
         $this->pullRequest = $pullRequest;
     }
 
