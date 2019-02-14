@@ -21,8 +21,8 @@ class SlackSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            LabelsAppliedEvent::NAME => 'onLabelsApplied',
-            PullRequestMergeFailureEvent::NAME => 'onPrFail'
+            LabelsAppliedEvent::NAME           => 'onLabelsApplied',
+            PullRequestMergeFailureEvent::NAME => 'onPrFail',
         ];
     }
 
@@ -38,7 +38,6 @@ class SlackSubscriber implements EventSubscriberInterface
                 getenv('SLACK_DEV_CHANNEL')
             );
         } catch (\Throwable $t) {
-
         }
     }
 
@@ -50,7 +49,7 @@ class SlackSubscriber implements EventSubscriberInterface
 
             if (null !== $event->getJiraIssueKey()) {
                 $subject = JiraHandler::buildIssueUrlFromIssueName($event->getJiraIssueKey());
-                $blame = '';
+                $blame   = '';
             }
 
             $this->sendMessage(
@@ -65,7 +64,6 @@ class SlackSubscriber implements EventSubscriberInterface
                 getenv('SLACK_REVIEW_CHANNEL')
             );
         } catch (\Throwable $t) {
-
         }
     }
 

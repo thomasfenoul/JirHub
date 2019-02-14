@@ -29,8 +29,8 @@ class GitHubHandler
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
-        $this->jiraHandler  = $jiraHandler;
-        $this->eventDispatcher  = $eventDispatcher;
+        $this->jiraHandler     = $jiraHandler;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public static function arraysToPullRequests(array $pullRequestsData)
@@ -165,7 +165,8 @@ class GitHubHandler
         return $this->gitHubClient->api('pull_request')->reviews()->all(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber()
+            $pullRequest->getNumber(),
+            ['per_page' => 50]
         );
     }
 
