@@ -445,7 +445,7 @@ class GitHubHandler
 
             $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
 
-            if ($jiraIssue->fields->status->name === getenv('JIRA_STATUS_BLOCKED')) {
+            if (\in_array($jiraIssue->fields->status->name, [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')], true)) {
                 continue;
             }
 
