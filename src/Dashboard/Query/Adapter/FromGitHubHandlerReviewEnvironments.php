@@ -22,6 +22,7 @@ class FromGitHubHandlerReviewEnvironments implements ReviewEnvironments
             new ReviewEnvironment('red'),
             new ReviewEnvironment('blue'),
             new ReviewEnvironment('green'),
+            new ReviewEnvironment('yellow'),
         ];
 
         foreach ($environments as $environment) {
