@@ -170,16 +170,17 @@ class GitHubHandler
         );
     }
 
-    public function mergePullRequest(PullRequest $pullRequest, string $mergeMethod = 'merge')
+    public function mergePullRequest(PullRequest $pullRequest, string $mergeMethod = 'squash')
     {
         try {
             $this->gitHubClient->api('pull_request')->merge(
                 getenv('GITHUB_REPOSITORY_OWNER'),
                 getenv('GITHUB_REPOSITORY_NAME'),
                 $pullRequest->getNumber(),
-                $pullRequest->getTitle(),
+                'Merged by JirHub',
                 $pullRequest->getHeadSha(),
-                $mergeMethod
+                $mergeMethod,
+                $pullRequest->getTitle()
             );
         } catch (\Exception $e) {
             $this->eventDispatcher->dispatch(PullRequestMergeFailureEvent::NAME, new PullRequestMergeFailureEvent($pullRequest, $e->getMessage()));
@@ -411,7 +412,7 @@ class GitHubHandler
         $pullRequestBody = $pullRequest->getBody();
         $jiraIssueUrl    = JiraHandler::buildIssueUrlFromIssueName($jiraIssue->key);
 
-        if (false === \strpos($pullRequestBody, $jiraIssueUrl)) {
+        if (false === strpos($pullRequestBody, $jiraIssueUrl)) {
             $this->updatePullRequestBody($pullRequest, $jiraIssueUrl . "\n\n" . $pullRequestBody);
         }
     }
