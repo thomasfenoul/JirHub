@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>JirHub</title>
+    <link rel="stylesheet" href="{{ asset('build/app.css') }}">
+</head>
+<body>
+
+<section class="section">
+    <div class="container">
+
+        <h1 class="title has-text-centered">JIRHUB STATUS</h1>
+
+        <section>
+            <h2>Environements de review :</h2>
+
+            <div class="tile is-ancestor">
+                <div class="tile is-parent">
+                    <div class="tile is-child notif env-green">
+                        <p class="task-number has-text-centered">TA-1898</p>
+                        <p class="task-title">Cachet Serveur</p>
+                    </div>
+                </div>
+
+                <div class="tile is-parent">
+                    <div class="tile is-child notif env-blue">
+                        <p class="task-number has-text-centered">TA-2112</p>
+                        <p class="task-title">Track Activate Accounting on BankAccount in Segment.com</p>
+                    </div>
+                </div>
+
+                <div class="tile is-parent">
+                    <div class="tile is-child notif env-red">
+                        <p class="task-number has-text-centered">TA-2402</p>
+                        <p class="task-title">Set default value for regex when TagEngine is launched</p>
+                    </div>
+                </div>
+
+                <div class="tile is-parent">
+                    <div class="tile is-child notif env-yellow">
+                        <p class="task-number has-text-centered">TA-2220</p>
+                        <p class="task-title">Refonte TVA</p>
+                    </div>
+                </div>
+
+
+            </div>
+        </section>
+
+        <section>
+            <h2>Pull requests à déployer en review :</h2>
+
+
+            <span class="icon has-text-info">
+                 <i class="fab fa-github"></i>
+            </span>
+            <span class="icon has-text-success">
+                 <i class="fab fa-github"></i>
+            </span>
+            <span class="icon has-text-warning">
+                 <i class="fab fa-jira"></i>
+            </span>
+            <span class="icon has-text-danger">
+                 <i class="fab fa-jira"></i>
+            </span>
+        </section>
+
+
+        <section>
+            <h2>Pull requests à merger :</h2>
+        </section>
+
+    </div>
+</section>
+
+
+<script src="{{ asset('build/runtime.js') }}"></script>
+<script src="{{ asset('build/app.js') }}"></script>
+</body>
+</html>

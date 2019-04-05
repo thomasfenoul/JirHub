@@ -1,42 +1,63 @@
 {% extends 'base.html.twig' %}
 
 {% block body %}
-<h2>Environements de review :</h2>
-<table border="1">
-        {% for env in review_environments %}
-                <tr>
-                        <th style="font-size: 1.1rem">{{ env.name }}</th>
-                        {% if env.pullRequest is null %}
-                                <td><span style="color: green"><b>DISPONIBLE</b></span></td>
-                        {% else %}
-                                <td><span>{{ env.pullRequest.getTitle }}</span></td>
-                                <td>
-                                        <a href="{{ env.pullRequest.getUrl }}" target="_blank"><i class="fab fa-github"></i>GitHub</a>
-                                </td>
-                        {% endif %}
-
-                </tr>
-        {% endfor %}
-</table>
 
 
-<h2>Pull requests à déployer en review :</h2>
-<table border="1">
-        {% for pullRequest in pull_requests_to_deploy %}
-                <tr>
-                        <th style="font-size: 1.1rem;text-align:left">{{ pullRequest.getTitle }}</th>
-                        <td><a href="{{ pullRequest.getUrl }}" target="_blank"><i class="fab fa-github"></i>GitHub</a></th>
-                </tr>
-        {% endfor %}
-</table>
+    <section class="section">
+        <div class="container">
 
-<h2>Pull requests à merger :</h2>
-<table border="1">
-    {% for pullRequest in pull_requests_to_merge_on_dev %}
-        <tr>
-            <th style="font-size: 1.1rem;text-align:left">{{ pullRequest.getTitle }}</th>
-            <td><a href="{{ pullRequest.getUrl }}" target="_blank"><i class="fab fa-github"></i>GitHub</a></th>
-        </tr>
-    {% endfor %}
-</table>
+            <h1 class="title has-text-centered">JIRHUB STATUS</h1>
+
+            <section>
+                <h2 class="is-size-4 is-bold">Environnements de review :</h2>
+                <div class="tile is-ancestor">
+                    {% for env in review_environments %}
+                        {% set free = env.pullRequest is null %}
+
+                        <div class="tile is-parent">
+                            <div class="tile is-child env {{ env.name }} {% if free %} free {% endif %}">
+                                {% if free %}
+                                    <span class="is-center">DISPONIBLE</span>
+                                    <button class="button" disabled>Déployer</button>
+                                {% else %}
+                                    <span class="ta-number">TA-XXXX</span>
+                                    <span class="ta-title">{{ env.pullRequest.getTitle }}</span>
+
+                                    <div class="links">
+                                        <span class="jira"><a href="#" disabled=""><i class="fab fa-jira"></i></a></span>
+                                        <span class="github"><a target="_blank" href="{{ env.pullRequest.getUrl }}"><i class="fab fa-github"></i></a></span>
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <section>
+                <h2 class="is-size-4 is-bold">Pull requests à déployer en review :</h2>
+
+                <ul>
+                    {% for pullRequest in pull_requests_to_deploy %}
+                        <li>
+                            {{ pullRequest.getTitle }}<a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+            <section>
+                <h2 class="is-size-4 is-bold">Pull requests à merger :</h2>
+
+                <ul>
+                    {% for pullRequest in pull_requests_to_merge_on_dev %}
+                        <li>
+                            {{ pullRequest.getTitle }}<a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </section>
+
+        </div>
+    </section>
 {% endblock body %}
