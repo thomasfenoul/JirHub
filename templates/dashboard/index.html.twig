@@ -9,7 +9,7 @@
             <h1 class="title has-text-centered">JIRHUB STATUS</h1>
 
             <section>
-                <h2 class="is-size-4 is-bold">Environnements de review :</h2>
+                <h2 class="is-size-4 is-bold">Environnements de validation :</h2>
                 <div class="tile is-ancestor">
                     {% for env in review_environments %}
                         {% set free = env.pullRequest is null %}
@@ -35,7 +35,7 @@
             </section>
 
             <section>
-                <h2 class="is-size-4 is-bold">Pull requests à déployer en review :</h2>
+                <h2 class="is-size-4 is-bold">Pull requests à déployer en validation :</h2>
 
                 <ul>
                     {% for pullRequest in pull_requests_to_deploy %}
