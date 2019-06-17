@@ -74,6 +74,15 @@
     "facebook/webdriver": {
         "version": "1.2.0"
     },
+    "friendsofphp/php-cs-fixer": {
+        "version": "2.2",
+        "recipe": {
+            "repo": "github.com/symfony/recipes",
+            "branch": "master",
+            "version": "2.2",
+            "ref": "81dee417d2cc60cd1c9d6208dff2ec22a1103e93"
+        }
+    },
     "gitonomy/gitlib": {
         "version": "v1.0.4"
     },
@@ -139,6 +148,9 @@
     },
     "phar-io/version": {
         "version": "2.0.1"
+    },
+    "php-cs-fixer/diff": {
+        "version": "v1.3.0"
     },
     "php-http/cache-plugin": {
         "version": "1.6-dev"
@@ -388,6 +400,9 @@
     },
     "symfony/serializer": {
         "version": "v4.1.7"
+    },
+    "symfony/stopwatch": {
+        "version": "v4.1.12"
     },
     "symfony/twig-bridge": {
         "version": "v4.1.11"

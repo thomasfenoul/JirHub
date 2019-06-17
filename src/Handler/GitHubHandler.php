@@ -82,9 +82,8 @@ class GitHubHandler
         /** @var PullRequest $pullRequest */
         foreach ($pullRequests as $pullRequest) {
             $isHeadMatching = strtoupper($pullRequest->getHeadRef()) === strtoupper($headBranchName);
-            $isBaseDefault  = strtoupper($pullRequest->getBaseRef()) === strtoupper(getenv('GITHUB_DEFAULT_BASE_BRANCH'));
 
-            if ($isHeadMatching && $isBaseDefault) {
+            if ($isHeadMatching) {
                 return $pullRequest;
             }
         }
