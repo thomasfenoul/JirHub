@@ -8,6 +8,7 @@
 // any CSS you require will output into a single css file (app.css in this case)
 import('bulma');
 import ('@fortawesome/fontawesome-free/scss/brands.scss');
+import ('@fortawesome/fontawesome-free/scss/solid.scss');
 import ('@fortawesome/fontawesome-free/scss/fontawesome.scss');
 
 require('../css/app.scss');

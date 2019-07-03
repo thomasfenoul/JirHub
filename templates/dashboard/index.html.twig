@@ -20,6 +20,22 @@
                                     <span class="is-center">DISPONIBLE</span>
                                     <button class="button" disabled>Déployer</button>
                                 {% else %}
+
+                                    <div class="quick-links dropdown is-right is-hoverable">
+                                        <div class="dropdown-trigger">
+                                            <span class="icon is-size-5" aria-haspopup="true" aria-controls="dropdown-menu">
+                                                <i class="fas fa-ellipsis-h"></i>
+                                            </span>
+                                        </div>
+                                        <div class="dropdown-menu" id="dropdown-menu" role="menu">
+                                            <div class="dropdown-content">
+                                                <a href="http://tiime-pro-{{ env.name }}.s3-website-eu-west-1.amazonaws.com" class="dropdown-item" target="_blank">
+                                                    Open the {{ env.name }} Tiime Pro
+                                                </a>
+                                            </div>
+                                        </div>
+                                    </div>
+
                                     <span class="ta-number">TA-XXXX</span>
                                     <span class="ta-title">{{ env.pullRequest.getTitle }}</span>
 
