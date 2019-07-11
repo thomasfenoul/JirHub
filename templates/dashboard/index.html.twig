@@ -9,8 +9,7 @@
             <h1 class="title has-text-centered">JIRHUB STATUS</h1>
 
             <section>
-                <h2 class="is-size-4 is-bold">Environnements de validation :</h2>
-                <div class="tile is-ancestor">
+                <div id="environments" class="tile is-ancestor">
                     {% for env in review_environments %}
                         {% set free = env.pullRequest is null %}
 
