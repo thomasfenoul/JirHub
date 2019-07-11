@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Handler;
+namespace App\Repository\Jira;
 
 use JiraRestApi\Issue\Issue;
 use JiraRestApi\Issue\IssueService;
@@ -8,7 +8,7 @@ use JiraRestApi\Issue\Transition;
 use JiraRestApi\JiraException;
 use JsonMapper_Exception;
 
-class JiraHandler
+class JiraIssueRepository
 {
     /** @var IssueService */
     private $issueService;
@@ -33,29 +33,12 @@ class JiraHandler
     /**
      * @throws JiraException
      */
-    public function transitionIssueTo(string $issueKey, int $transitionId)
+    public function transitionIssueTo(string $issueKey, int $transitionId): void
     {
         $transition = new Transition();
         $transition->setTransitionId($transitionId);
         $transition->setCommentBody('JirHub performed a transition.');
 
         $this->issueService->transition($issueKey, $transition);
-    }
-
-    public static function extractIssueKeyFromString(string $str)
-    {
-        $matches = [];
-        preg_match(getenv('JIRA_ISSUE_REGEX_PATTERN'), $str, $matches);
-
-        if (1 === \count($matches)) {
-            return $matches[0];
-        }
-
-        return null;
-    }
-
-    public static function buildIssueUrlFromIssueName(string $issueName)
-    {
-        return getenv('JIRA_HOST') . '/browse/' . $issueName;
     }
 }

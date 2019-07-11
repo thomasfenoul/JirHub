@@ -5,7 +5,9 @@ namespace App\Handler;
 use App\Event\LabelsAppliedEvent;
 use App\Event\PullRequestMergedEvent;
 use App\Event\PullRequestMergeFailureEvent;
+use App\Helper\JiraHelper;
 use App\Model\PullRequest;
+use App\Repository\Jira\JiraIssueRepository;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
 use JiraRestApi\JiraException;
@@ -19,18 +21,18 @@ class GitHubHandler
     /** @var GitHubClient */
     private $gitHubClient;
 
-    /** @var JiraHandler */
-    private $jiraHandler;
+    /** @var JiraIssueRepository */
+    private $jiraIssueRepository;
 
     /** @var EventDispatcherInterface $eventDispatcher */
     protected $eventDispatcher;
 
-    public function __construct(JiraHandler $jiraHandler, EventDispatcherInterface $eventDispatcher)
+    public function __construct(JiraIssueRepository $jiraIssueRepository, EventDispatcherInterface $eventDispatcher)
     {
         $this->gitHubClient = new GitHubClient();
         $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
-        $this->jiraHandler     = $jiraHandler;
-        $this->eventDispatcher = $eventDispatcher;
+        $this->jiraIssueRepository = $jiraIssueRepository;
+        $this->eventDispatcher     = $eventDispatcher;
     }
 
     public static function arraysToPullRequests(array $pullRequestsData)
@@ -114,15 +116,15 @@ class GitHubHandler
 
     public function getJiraIssueFromPullRequest(PullRequest $pullRequest): ?JiraIssue
     {
-        $jiraIssueKey = JiraHandler::extractIssueKeyFromString($pullRequest->getHeadRef())
-            ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
+        $jiraIssueKey = JiraHelper::extractIssueKeyFromString($pullRequest->getHeadRef())
+            ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle());
 
         if (null === $jiraIssueKey) {
             return null;
         }
 
         try {
-            return $this->jiraHandler->getIssue($jiraIssueKey);
+            return $this->jiraIssueRepository->getIssue($jiraIssueKey);
         } catch (\Exception $e) {
             return null;
         }
@@ -339,11 +341,11 @@ class GitHubHandler
         $this->removeReviewLabels($pullRequest);
         $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest);
 
-        $jiraIssueKey = JiraHandler::extractIssueKeyFromString($headBranchName)
-            ?? JiraHandler::extractIssueKeyFromString($pullRequest->getTitle());
+        $jiraIssueKey = JiraHelper::extractIssueKeyFromString($headBranchName)
+            ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle());
 
         if (null !== $jiraIssueKey) {
-            $this->jiraHandler->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
+            $this->jiraIssueRepository->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
         }
 
         $this->eventDispatcher->dispatch(
@@ -381,7 +383,7 @@ class GitHubHandler
             $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
 
             if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
-                $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
+                $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
             }
         }
     }
@@ -396,7 +398,7 @@ class GitHubHandler
         foreach ($labels as $label) {
             if ($this->hasLabel($pullRequest, $label)) {
                 if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
-                    $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_IN_PROGRESS'));
+                    $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_IN_PROGRESS'));
                 }
 
                 return true;
@@ -409,7 +411,7 @@ class GitHubHandler
     public function addJiraLinkToDescription(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
         $pullRequestBody = $pullRequest->getBody();
-        $jiraIssueUrl    = JiraHandler::buildIssueUrlFromIssueName($jiraIssue->key);
+        $jiraIssueUrl    = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
 
         if (false === strpos($pullRequestBody, $jiraIssueUrl)) {
             $this->updatePullRequestBody($pullRequest, $jiraIssueUrl . "\n\n" . $pullRequestBody);
@@ -454,7 +456,7 @@ class GitHubHandler
             if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
                 if (false === $this->isPullRequestApproved($pullRequest)) {
                     if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
-                        $this->jiraHandler->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
+                        $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
                     }
                 }
             }
