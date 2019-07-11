@@ -4,6 +4,7 @@ namespace App\Dashboard\Query\Adapter;
 
 use App\Dashboard\Query\ReviewEnvironments;
 use App\Handler\GitHubHandler;
+use App\Helper\JiraHelper;
 use App\Model\ReviewEnvironment;
 
 class FromGitHubHandlerReviewEnvironments implements ReviewEnvironments
@@ -25,11 +26,20 @@ class FromGitHubHandlerReviewEnvironments implements ReviewEnvironments
             new ReviewEnvironment('yellow'),
         ];
 
+        /** @var ReviewEnvironment $environment */
         foreach ($environments as $environment) {
             $pullRequestsOnEnvironment = $this->handler->getOpenPullRequestsWithLabel('~validation-' . $environment->getName());
 
             if (!empty($pullRequestsOnEnvironment)) {
-                $environment->setPullRequest($pullRequestsOnEnvironment[0]);
+                $pullRequest = $this->handler->getPullRequest($pullRequestsOnEnvironment[0]->getNumber());
+
+                $environment
+                    ->setPullRequest($pullRequest)
+                    ->setJiraIssueKey(
+                        JiraHelper::extractIssueKeyFromString($pullRequest->getHeadRef())
+                        ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle())
+                    )
+                ;
             }
         }
 

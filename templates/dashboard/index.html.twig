@@ -42,12 +42,18 @@
                                         </div>
                                     </div>
 
-                                    <span class="ta-number">TA-XXXX</span>
+                                    <span class="ta-number">{{ env.jiraIssueKey|default('Unknown Jira Ticket') }}</span>
                                     <span class="ta-title">{{ env.pullRequest.getTitle }}</span>
 
                                     <div class="links">
-                                        <span class="jira"><a href="#" disabled=""><i class="fab fa-jira"></i></a></span>
-                                        <span class="github"><a target="_blank" href="{{ env.pullRequest.getUrl }}"><i class="fab fa-github"></i></a></span>
+                                        {% if env.jiraIssueKey is not null %}
+                                            <span class="jira">
+                                                <a target="_blank" href="{{ "#{jira_host}/browse/#{env.jiraIssueKey}" }}"><i class="fab fa-jira"></i></a>
+                                            </span>
+                                        {% endif %}
+                                        <span class="github">
+                                            <a target="_blank" href="{{ env.pullRequest.getUrl }}"><i class="fab fa-github"></i></a>
+                                        </span>
                                     </div>
                                 {% endif %}
                             </div>
