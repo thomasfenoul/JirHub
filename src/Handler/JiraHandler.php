@@ -6,15 +6,10 @@ use JiraRestApi\Issue\Issue;
 use JiraRestApi\Issue\IssueService;
 use JiraRestApi\Issue\Transition;
 use JiraRestApi\JiraException;
-use JiraRestApi\Project\Project;
-use JiraRestApi\Project\ProjectService;
 use JsonMapper_Exception;
 
 class JiraHandler
 {
-    /** @var ProjectService */
-    private $projectService;
-
     /** @var IssueService */
     private $issueService;
 
@@ -23,17 +18,7 @@ class JiraHandler
      */
     public function __construct()
     {
-        $this->projectService = new ProjectService();
-        $this->issueService   = new IssueService();
-    }
-
-    /**
-     * @throws JiraException
-     * @throws JsonMapper_Exception
-     */
-    public function getProjectInfo(string $projectName): Project
-    {
-        return $this->projectService->get($projectName);
+        $this->issueService = new IssueService();
     }
 
     /**
