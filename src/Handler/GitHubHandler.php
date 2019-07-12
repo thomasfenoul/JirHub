@@ -350,7 +350,7 @@ class GitHubHandler
 
         $this->eventDispatcher->dispatch(
             LabelsAppliedEvent::NAME,
-            new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey);
+            new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey)
         );
 
         return true;
