@@ -41,7 +41,7 @@
                                         </div>
                                     </div>
 
-                                    <span class="ta-number">{{ env.jiraIssueKey|default('Unknown Jira Ticket') }}</span>
+                                    <span class="ta-number">{{ env.jiraIssueKey|upper|default('Unknown Jira Ticket') }}</span>
                                     <span class="ta-title">{{ env.pullRequest.getTitle }}</span>
 
                                     <div class="links">

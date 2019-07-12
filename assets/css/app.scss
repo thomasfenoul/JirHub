@@ -60,13 +60,19 @@ html {
           }
         }
 
+        &.free {
+          background-color: $dark !important;
+        }
+
         &.green {
           background-color: $green;
           border-color: $green;
           color: #fff;
 
           &.free {
-            color: $green;
+            * {
+              color: $green;
+            }
 
             .button {
               background-color: $green;
@@ -82,7 +88,9 @@ html {
           color: #fff;
 
           &.free {
-            color: $blue;
+            * {
+              color: $blue;
+            }
 
             .button {
               background-color: $blue;
@@ -98,7 +106,9 @@ html {
           color: #fff;
 
           &.free {
-            color: $red;
+            * {
+              color: $red;
+            }
 
             .button {
               background-color: $red;
@@ -114,7 +124,9 @@ html {
           color: rgba(0, 0, 0, .7);
 
           &.free {
-            color: $yellow;
+            * {
+              color: $yellow;
+            }
 
             .button {
               background-color: $yellow;
@@ -127,7 +139,6 @@ html {
         &.free {
           background-color: #ffffff;
           border-width: 5px;
-
           a {
             font-size: 1.5rem;
           }
