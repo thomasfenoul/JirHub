@@ -4,7 +4,7 @@ namespace App\EventSubscriber;
 
 use App\Event\LabelsAppliedEvent;
 use App\Event\PullRequestMergeFailureEvent;
-use App\Handler\JiraHandler;
+use App\Helper\JiraHelper;
 use JoliCode\Slack\Api\Client;
 use Symfony\Component\EventDispatcher\EventSubscriberInterface;
 
@@ -48,7 +48,7 @@ class SlackSubscriber implements EventSubscriberInterface
             $blame   = '(demander à ' . $event->getPullRequest()->getUser() . ' de retrouver la tâche Jira)';
 
             if (null !== $event->getJiraIssueKey()) {
-                $subject = JiraHandler::buildIssueUrlFromIssueName($event->getJiraIssueKey());
+                $subject = JiraHelper::buildIssueUrlFromIssueName($event->getJiraIssueKey());
                 $blame   = '';
             }
 

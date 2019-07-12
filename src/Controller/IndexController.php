@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Handler\GitHubHandler;
+use JiraRestApi\JiraException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
@@ -24,6 +25,8 @@ class IndexController extends Controller
 
     /**
      * @Route("/apply", name="apply_labels", methods={"GET"})
+     *
+     * @throws JiraException
      */
     public function applyAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
