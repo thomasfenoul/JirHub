@@ -8,6 +8,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Psr\Log\LoggerInterface;
 
 class IndexController extends Controller
 {
@@ -54,6 +55,17 @@ class IndexController extends Controller
             }
         }
 
-        return (new Response())->setStatusCode(Response::HTTP_NO_CONTENT);
+        return new Response('', Response::HTTP_NO_CONTENT);
+    }
+
+    /**
+     * @Route("/github_webhook", name="github_webhook", methods={"POST"})
+     */
+    public function githubWebhookAction(Request $request, LoggerInterface $logger): Response
+    {
+        $logger->info(json_encode($request->headers->all()));
+        $logger->info($request->getContent());
+
+        return new Response('', Response::HTTP_NO_CONTENT);
     }
 }
