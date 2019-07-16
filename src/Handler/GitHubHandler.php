@@ -25,12 +25,14 @@ class GitHubHandler
     private $jiraIssueRepository;
 
     /** @var EventDispatcherInterface $eventDispatcher */
-    protected $eventDispatcher;
+    private $eventDispatcher;
 
-    public function __construct(JiraIssueRepository $jiraIssueRepository, EventDispatcherInterface $eventDispatcher)
-    {
-        $this->gitHubClient = new GitHubClient();
-        $this->gitHubClient->authenticate(getenv('GITHUB_TOKEN'), null, GitHubClient::AUTH_HTTP_TOKEN);
+    public function __construct(
+        GithubClient $gitHubClient,
+        JiraIssueRepository $jiraIssueRepository,
+        EventDispatcherInterface $eventDispatcher
+    ) {
+        $this->gitHubClient        = $gitHubClient;
         $this->jiraIssueRepository = $jiraIssueRepository;
         $this->eventDispatcher     = $eventDispatcher;
     }

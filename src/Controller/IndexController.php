@@ -60,11 +60,15 @@ class IndexController extends Controller
 
     /**
      * @Route("/github_webhook", name="github_webhook", methods={"POST"})
+     *
+     * @throws JiraException
      */
-    public function githubWebhookAction(Request $request, LoggerInterface $logger): Response
+    public function githubWebhookAction(Request $request, GitHubHandler $gitHubHandler, LoggerInterface $logger): Response
     {
         $logger->info(json_encode($request->headers->all()));
         $logger->info($request->getContent());
+
+        $gitHubHandler->synchronize();
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }

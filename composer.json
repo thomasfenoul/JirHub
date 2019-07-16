@@ -5,10 +5,12 @@
         "php": "^7.1.3",
         "ext-ctype": "*",
         "ext-iconv": "*",
+        "ext-json": "*",
         "friendsofphp/php-cs-fixer": "^2.15",
         "guzzlehttp/psr7": "^1.4",
         "jolicode/slack-php-api": "^1.0",
         "knplabs/github-api": "^2.10",
+        "lcobucci/jwt": "^3.3",
         "lesstif/php-jira-rest-client": "^1.33",
         "php-http/curl-client": "^1.7",
         "php-http/guzzle6-adapter": "*",
@@ -20,8 +22,7 @@
         "symfony/monolog-bundle": "^3.4",
         "symfony/twig-bundle": "4.1.*",
         "symfony/webpack-encore-bundle": "^1.3",
-        "symfony/yaml": "4.1.*",
-        "ext-json": "*"
+        "symfony/yaml": "4.1.*"
     },
 
     "require-dev": {
