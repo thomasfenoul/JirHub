@@ -18,7 +18,7 @@ class GitHubClientFactory
         string $gitHubAppInstallationId
     ): Client {
         $client = new Client($httpClientBuilder, 'machine-man-preview');
-        $jwt = $jwtBuilder
+        $jwt    = $jwtBuilder
             ->issuedBy($gitHubAppId)
             ->issuedAt(time())
             ->expiresAt(time() + 60)

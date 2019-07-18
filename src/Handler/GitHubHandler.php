@@ -7,6 +7,8 @@ use App\Event\PullRequestMergedEvent;
 use App\Event\PullRequestMergeFailureEvent;
 use App\Helper\JiraHelper;
 use App\Model\PullRequest;
+use App\Repository\GitHub\PullRequestRepository;
+use App\Repository\GitHub\PullRequestSearchFilters;
 use App\Repository\Jira\JiraIssueRepository;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
@@ -21,6 +23,9 @@ class GitHubHandler
     /** @var GitHubClient */
     private $gitHubClient;
 
+    /** @var PullRequestRepository */
+    private $pullRequestRepository;
+
     /** @var JiraIssueRepository */
     private $jiraIssueRepository;
 
@@ -29,12 +34,14 @@ class GitHubHandler
 
     public function __construct(
         GithubClient $gitHubClient,
+        PullRequestRepository $pullRequestRepository,
         JiraIssueRepository $jiraIssueRepository,
         EventDispatcherInterface $eventDispatcher
     ) {
-        $this->gitHubClient        = $gitHubClient;
-        $this->jiraIssueRepository = $jiraIssueRepository;
-        $this->eventDispatcher     = $eventDispatcher;
+        $this->gitHubClient          = $gitHubClient;
+        $this->pullRequestRepository = $pullRequestRepository;
+        $this->jiraIssueRepository   = $jiraIssueRepository;
+        $this->eventDispatcher       = $eventDispatcher;
     }
 
     public static function arraysToPullRequests(array $pullRequestsData)
@@ -53,51 +60,27 @@ class GitHubHandler
         $pullRequest->setReviews(array_reverse($this->getPullRequestReviews($pullRequest)));
     }
 
-    public function getOpenPullRequests(array $filters = []): array
+    public function getOpenPullRequestFromHeadBranch(string $headBranchName)
     {
-        $pullRequestsData = $this->gitHubClient->api('pull_request')->all(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            ['state' => 'open', 'per_page' => 50] + $filters
-        );
-
-        return self::arraysToPullRequests($pullRequestsData);
-    }
-
-    public function getOpenPullRequestsWithLabel(string $label)
-    {
-        $pullRequestsData = $this->gitHubClient->api('issue')->all(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
+        $pullRequests = $this->pullRequestRepository->search(
             [
-                'state'    => 'open',
-                'per_page' => 50,
-                'labels'   => $label,
+                PullRequestSearchFilters::STATE            => 'open',
+                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+                PullRequestSearchFilters::HEAD_REF         => $headBranchName,
             ]
         );
 
-        return self::arraysToPullRequests($pullRequestsData);
-    }
-
-    public function getOpenPullRequestFromHeadBranch(string $headBranchName)
-    {
-        $pullRequests = $this->getOpenPullRequests();
-
-        /** @var PullRequest $pullRequest */
-        foreach ($pullRequests as $pullRequest) {
-            $isHeadMatching = strtoupper($pullRequest->getHeadRef()) === strtoupper($headBranchName);
-
-            if ($isHeadMatching) {
-                return $pullRequest;
-            }
-        }
-
-        return null;
+        return (true === empty($pullRequests)) ? null : array_pop($pullRequests);
     }
 
     public function getOpenPullRequestFromJiraIssueKey(string $jiraIssueName)
     {
-        $pullRequests = $this->getOpenPullRequests();
+        $pullRequests = $this->pullRequestRepository->search(
+            [
+                PullRequestSearchFilters::STATE            => 'open',
+                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+            ]
+        );
 
         /** @var PullRequest $pullRequest */
         foreach ($pullRequests as $pullRequest) {
@@ -130,17 +113,6 @@ class GitHubHandler
         } catch (\Exception $e) {
             return null;
         }
-    }
-
-    public function getPullRequest(int $pullRequestNumber): PullRequest
-    {
-        $pullRequestData = $this->gitHubClient->api('pull_request')->show(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequestNumber
-        );
-
-        return new PullRequest($pullRequestData);
     }
 
     public function addLabelToPullRequest(string $label, PullRequest $pullRequest)
@@ -236,10 +208,16 @@ class GitHubHandler
 
     public function isReviewBranchAvailable(string $reviewBranchName, PullRequest $pullRequest)
     {
-        $pullRequests = $this->getOpenPullRequestsWithLabel(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName);
+        $pullRequests = $this->pullRequestRepository->search(
+            [
+                PullRequestSearchFilters::STATE            => 'open',
+                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+                PullRequestSearchFilters::LABELS           => [getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName],
+            ]
+        );
 
         return 0 === \count($pullRequests)
-            || (1 === \count($pullRequests) && $pullRequests[0]->getNumber() === $pullRequest->getNumber());
+            || (1 === \count($pullRequests) && array_pop($pullRequests)->getNumber() === $pullRequest->getNumber());
     }
 
     public function checkDeployability(string $headBranchName, string $reviewBranchName, ?PullRequest $pullRequest = null, bool $force = false)
@@ -258,11 +236,7 @@ class GitHubHandler
             die;
         }
 
-        if (
-            true === $force
-            && $this->hasLabel($pullRequest, getenv('GITHUB_FORCE_LABEL'))
-            && $this->isReviewBranchAvailable($reviewBranchName, $pullRequest)
-        ) {
+        if ($this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName)) {
             return 'OK';
         }
 
@@ -437,7 +411,12 @@ class GitHubHandler
      */
     public function synchronize()
     {
-        $pullRequests = $this->getOpenPullRequests();
+        $pullRequests = $this->pullRequestRepository->search(
+            [
+                PullRequestSearchFilters::STATE            => 'open',
+                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+            ]
+        );
 
         /** @var PullRequest $pullRequest */
         foreach ($pullRequests as $pullRequest) {

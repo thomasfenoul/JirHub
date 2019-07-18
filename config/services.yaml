@@ -14,6 +14,11 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
+    App\Repository\GitHub\PullRequestRepository:
+        arguments:
+            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
+            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+
     public.logger:
         alias: 'logger'
         public: true

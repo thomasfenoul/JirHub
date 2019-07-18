@@ -3,20 +3,27 @@
 namespace App\Dashboard\Query\Adapter;
 
 use App\Dashboard\Query\PullRequestsToMergeOnDev;
-use App\Handler\GitHubHandler;
+use App\Repository\GitHub\PullRequestRepository;
+use App\Repository\GitHub\PullRequestSearchFilters;
 
 class FromGitHubHandlerPullRequestsToMergeOnDev implements PullRequestsToMergeOnDev
 {
-    /** @var GitHubHandler */
-    protected $handler;
+    /** @var PullRequestRepository */
+    protected $pullRequestRepository;
 
-    public function __construct(GitHubHandler $handler)
+    public function __construct(PullRequestRepository $pullRequestRepository)
     {
-        $this->handler = $handler;
+        $this->pullRequestRepository = $pullRequestRepository;
     }
 
     public function fetch(): array
     {
-        return $this->handler->getOpenPullRequestsWithLabel('~validated');
+        return $this->pullRequestRepository->search(
+            [
+                PullRequestSearchFilters::STATE            => 'open',
+                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+                PullRequestSearchFilters::LABELS           => ['~validated'],
+            ]
+        );
     }
 }
