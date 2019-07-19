@@ -51,8 +51,7 @@ class GitHubHandler
         PullRequestReviewRepository $pullRequestReviewRepository,
         PullRequestLabelRepository $pullRequestLabelRepository,
         JiraIssueRepository $jiraIssueRepository,
-        EventDispatcherInterface $eventDispatcher,
-        FilesystemAdapter $cache
+        EventDispatcherInterface $eventDispatcher
     ) {
         $this->gitHubClient                = $gitHubClient;
         $this->pullRequestRepository       = $pullRequestRepository;
@@ -60,7 +59,7 @@ class GitHubHandler
         $this->pullRequestLabelRepository  = $pullRequestLabelRepository;
         $this->jiraIssueRepository         = $jiraIssueRepository;
         $this->eventDispatcher             = $eventDispatcher;
-        $this->cache                       = $cache;
+        $this->cache                       = new FilesystemAdapter();
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)

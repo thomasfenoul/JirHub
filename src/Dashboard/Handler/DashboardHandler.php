@@ -33,13 +33,12 @@ class DashboardHandler
     public function __construct(
         ReviewEnvironments $reviewEnvironments,
         PullRequestsToDeploy $pullRequestsToDeploy,
-        PullRequestsToMergeOnDev $pullRequestsToMergeOnDev,
-        FilesystemAdapter $cache
+        PullRequestsToMergeOnDev $pullRequestsToMergeOnDev
     ) {
         $this->reviewEnvironments       = $reviewEnvironments;
         $this->pullRequestsToDeploy     = $pullRequestsToDeploy;
         $this->pullRequestsToMergeOnDev = $pullRequestsToMergeOnDev;
-        $this->cache                    = $cache;
+        $this->cache                    = new FilesystemAdapter();
     }
 
     /**
