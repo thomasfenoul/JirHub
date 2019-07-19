@@ -6,6 +6,7 @@ use App\Handler\GitHubHandler;
 use App\Repository\GitHub\PullRequestRepository;
 use JiraRestApi\JiraException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -21,7 +22,11 @@ class IndexController extends Controller
         $env    = $request->get('env');
         $force  = null !== $request->get('force');
 
-        return new Response($gitHubHandler->checkDeployability($branch, $env, null, $force));
+        return new JsonResponse(
+            [
+                'message' => $gitHubHandler->checkDeployability($branch, $env, null, $force),
+            ]
+        );
     }
 
     /**

@@ -161,7 +161,8 @@ class GitHubHandler
     {
         return \in_array(
             getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName,
-            explode(',', getenv('GITHUB_REVIEW_LABELS'))
+            explode(',', getenv('GITHUB_REVIEW_LABELS')),
+            true
         );
     }
 
@@ -199,9 +200,7 @@ class GitHubHandler
         }
 
         if (null === $pullRequest) {
-            echo 'Pull Request not found.';
-
-            die;
+            return 'Pull Request not found.';
         }
 
         if ($this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName)) {
@@ -209,27 +208,19 @@ class GitHubHandler
         }
 
         if (empty($pullRequest) || null === $pullRequest) {
-            echo 'We have not found any pull request with head branch "' . $headBranchName . '".';
-
-            die;
+            return 'We have not found any pull request with head branch "' . $headBranchName . '".';
         }
 
         if (!$this->doesReviewBranchExists($reviewBranchName)) {
-            echo 'The review branch "' . $reviewBranchName . '" does not exist or does not have any attributed label.';
-
-            die;
+            return 'The review branch "' . $reviewBranchName . '" does not exist or does not have any attributed label.';
         }
 
         if (!$this->isReviewBranchAvailable($reviewBranchName, $pullRequest)) {
-            echo 'The review branch "' . $reviewBranchName . '" is already used by another PR.';
-
-            die;
+            return 'The review branch "' . $reviewBranchName . '" is already used by another PR.';
         }
 
         if (!$this->isPullRequestApproved($pullRequest)) {
-            echo 'The pull request with head branch "' . $headBranchName . '" does not have enough approving reviews or has requested changes.';
-
-            die;
+            return 'The pull request with head branch "' . $headBranchName . '" does not have enough approving reviews or has requested changes.';
         }
 
         return 'OK';
