@@ -16,15 +16,12 @@ class HerokuHandler
     }
 
     /**
-     * @param array $appNames
-     * @param array $dynoTypes
-     * @param int $quantity
      * @throws GuzzleException
      */
     public function updateDynoQuantity(array $appNames, array $dynoTypes, int $quantity)
     {
         foreach ($appNames as $appName) {
-            if (! $this->isAppManageable($appName)) {
+            if (!$this->isAppManageable($appName)) {
                 continue;
             }
 
@@ -34,18 +31,21 @@ class HerokuHandler
         }
     }
 
-    private function isAppManageable(string $appName):bool
+    private function isAppManageable(string $appName): bool
     {
-        if (substr($appName, 0, 7) !== "chronos") {
+        if ('chronos' !== substr($appName, 0, 7)) {
             return false;
         }
-        if (strpos($appName, "development") !== false) {
+
+        if (false !== strpos($appName, 'development')) {
             return false;
         }
-        if (strpos($appName, "staging") !== false) {
+
+        if (false !== strpos($appName, 'staging')) {
             return false;
         }
-        if (strpos($appName, "production") !== false) {
+
+        if (false !== strpos($appName, 'production')) {
             return false;
         }
 

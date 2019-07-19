@@ -4,6 +4,7 @@ namespace App\Repository\GitHub;
 
 use App\Event\PullRequestMergedEvent;
 use App\Event\PullRequestMergeFailureEvent;
+use App\Factory\PullRequestFactory;
 use App\Model\PullRequest;
 use Github\Client;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
@@ -42,7 +43,7 @@ class PullRequestRepository
             $id
         );
 
-        return new PullRequest($pullRequestData);
+        return PullRequestFactory::fromArray($pullRequestData);
     }
 
     /**
@@ -74,7 +75,7 @@ class PullRequestRepository
         $pullRequests = [];
 
         foreach ($pullRequestsData as $pullRequestData) {
-            $pullRequests[] = new PullRequest($pullRequestData);
+            $pullRequests[] = PullRequestFactory::fromArray($pullRequestData);
         }
 
         foreach ($pullRequests as $key => $pullRequest) {
@@ -129,7 +130,7 @@ class PullRequestRepository
             $this->client->pullRequests()->merge(
                 $this->repositoryOwner,
                 $this->repositoryName,
-                $pullRequest->getNumber(),
+                $pullRequest->getId(),
                 'Merged by JirHub',
                 $pullRequest->getHeadSha(),
                 $mergeMethod,

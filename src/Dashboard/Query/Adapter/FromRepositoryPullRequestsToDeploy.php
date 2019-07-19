@@ -6,7 +6,7 @@ use App\Dashboard\Query\PullRequestsToDeploy;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestSearchFilters;
 
-class FromGitHubHandlerPullRequestsToDeploy implements PullRequestsToDeploy
+class FromRepositoryPullRequestsToDeploy implements PullRequestsToDeploy
 {
     /** @var PullRequestRepository */
     protected $pullRequestRepository;
@@ -19,11 +19,7 @@ class FromGitHubHandlerPullRequestsToDeploy implements PullRequestsToDeploy
     public function fetch(): array
     {
         return $this->pullRequestRepository->search(
-            [
-                PullRequestSearchFilters::STATE            => 'open',
-                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
-                PullRequestSearchFilters::LABELS           => ['~validation-required'],
-            ]
+            [PullRequestSearchFilters::LABELS => ['~validation-required']]
         );
     }
 }

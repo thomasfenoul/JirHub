@@ -19,6 +19,11 @@ services:
             $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
             $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
 
+    App\Repository\GitHub\PullRequestReviewRepository:
+        arguments:
+            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
+            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+
     App\Repository\GitHub\PullRequestLabelRepository:
         arguments:
             $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
@@ -47,6 +52,6 @@ services:
             $domain: '%heroku.domain%'
             $apiKey: '%heroku.api_key%'
 
-    App\Dashboard\Query\ReviewEnvironments: '@App\Dashboard\Query\Adapter\FromGitHubHandlerReviewEnvironments'
-    App\Dashboard\Query\PullRequestsToDeploy: '@App\Dashboard\Query\Adapter\FromGitHubHandlerPullRequestsToDeploy'
-    App\Dashboard\Query\PullRequestsToMergeOnDev: '@App\Dashboard\Query\Adapter\FromGitHubHandlerPullRequestsToMergeOnDev'
+    App\Dashboard\Query\ReviewEnvironments: '@App\Dashboard\Query\Adapter\FromRepositoryReviewEnvironments'
+    App\Dashboard\Query\PullRequestsToDeploy: '@App\Dashboard\Query\Adapter\FromRepositoryPullRequestsToDeploy'
+    App\Dashboard\Query\PullRequestsToMergeOnDev: '@App\Dashboard\Query\Adapter\FromRepositoryPullRequestsToMergeOnDev'

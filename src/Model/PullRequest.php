@@ -4,38 +4,58 @@ namespace App\Model;
 
 class PullRequest
 {
-    private $number;
+    /** @var int */
+    private $id;
+
+    /** @var string */
     private $title;
+
+    /** @var string */
     private $body;
+
+    /** @var string */
     private $headRef;
+
+    /** @var string */
     private $baseRef;
+
+    /** @var string */
     private $url;
+
+    /** @var string */
     private $headSha;
+
+    /** @var GitHubUser */
     private $user;
+
+    /** @var string[] */
     private $labels;
-    private $reviews;
 
-    public function __construct(array $pullRequestData)
-    {
-        $this->number  = $pullRequestData['number'];
-        $this->title   = $pullRequestData['title'];
-        $this->body    = $pullRequestData['body'];
-        $this->headRef = $pullRequestData['head']['ref'] ?? null;
-        $this->baseRef = $pullRequestData['base']['ref'] ?? null;
-        $this->url     = $pullRequestData['html_url'];
-        $this->headSha = $pullRequestData['head']['sha'] ?? null;
-        $this->user    = $pullRequestData['user']['login'];
-        $this->labels  = [];
-        $this->reviews = [];
-
-        foreach ($pullRequestData['labels'] as $label) {
-            $this->labels[] = $label['name'];
-        }
+    public function __construct(
+        int $id,
+        string $title,
+        string $body,
+        string $headRef,
+        string $baseRef,
+        string $url,
+        string $headSha,
+        GitHubUser $user,
+        array $labels
+    ) {
+        $this->id      = $id;
+        $this->title   = $title;
+        $this->body    = $body;
+        $this->headRef = $headRef;
+        $this->baseRef = $baseRef;
+        $this->url     = $url;
+        $this->headSha = $headSha;
+        $this->user    = $user;
+        $this->labels  = $labels;
     }
 
-    public function getNumber(): int
+    public function getId(): int
     {
-        return $this->number;
+        return $this->id;
     }
 
     public function getTitle(): string
@@ -68,7 +88,7 @@ class PullRequest
         return $this->headSha;
     }
 
-    public function getUser(): string
+    public function getUser(): GitHubUser
     {
         return $this->user;
     }
@@ -94,18 +114,6 @@ class PullRequest
         if (false !== $index) {
             unset($this->labels[$index]);
         }
-
-        return $this;
-    }
-
-    public function getReviews(): array
-    {
-        return $this->reviews;
-    }
-
-    public function setReviews(array $reviews): self
-    {
-        $this->reviews = $reviews;
 
         return $this;
     }

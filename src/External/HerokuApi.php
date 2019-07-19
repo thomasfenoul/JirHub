@@ -19,8 +19,8 @@ class HerokuApi
                     'base_uri' => $domain,
                     'headers'  => [
                         'Authorization' => 'Bearer ' . $apiKey,
-                        'Content-Type' => 'application/json',
-                        'Accept' => 'application/vnd.heroku+json; version=3'
+                        'Content-Type'  => 'application/json',
+                        'Accept'        => 'application/vnd.heroku+json; version=3',
                     ],
                 ]
             );
@@ -28,10 +28,6 @@ class HerokuApi
     }
 
     /**
-     * @param string $appName
-     * @param string $formationType
-     * @param int $quantity
-     * @return array
      * @throws GuzzleException
      */
     public function updateFormationQuantity(string $appName, string $formationType, int $quantity): array
@@ -41,8 +37,8 @@ class HerokuApi
             'apps/' . $appName . '/formation/' . $formationType,
             [
                 'json' => [
-                    'quantity' => $quantity
-                ]
+                    'quantity' => $quantity,
+                ],
             ]
         );
 

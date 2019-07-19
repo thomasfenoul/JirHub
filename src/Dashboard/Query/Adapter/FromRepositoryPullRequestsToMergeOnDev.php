@@ -6,7 +6,7 @@ use App\Dashboard\Query\PullRequestsToMergeOnDev;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestSearchFilters;
 
-class FromGitHubHandlerPullRequestsToMergeOnDev implements PullRequestsToMergeOnDev
+class FromRepositoryPullRequestsToMergeOnDev implements PullRequestsToMergeOnDev
 {
     /** @var PullRequestRepository */
     protected $pullRequestRepository;
@@ -19,11 +19,7 @@ class FromGitHubHandlerPullRequestsToMergeOnDev implements PullRequestsToMergeOn
     public function fetch(): array
     {
         return $this->pullRequestRepository->search(
-            [
-                PullRequestSearchFilters::STATE            => 'open',
-                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
-                PullRequestSearchFilters::LABELS           => ['~validated'],
-            ]
+            [PullRequestSearchFilters::LABELS => ['~validated']]
         );
     }
 }

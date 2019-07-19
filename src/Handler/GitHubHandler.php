@@ -3,10 +3,13 @@
 namespace App\Handler;
 
 use App\Event\LabelsAppliedEvent;
+use App\Factory\PullRequestFactory;
 use App\Helper\JiraHelper;
 use App\Model\PullRequest;
+use App\Model\PullRequestReview;
 use App\Repository\GitHub\PullRequestLabelRepository;
 use App\Repository\GitHub\PullRequestRepository;
+use App\Repository\GitHub\PullRequestReviewRepository;
 use App\Repository\GitHub\PullRequestSearchFilters;
 use App\Repository\Jira\JiraIssueRepository;
 use Github\Client as GitHubClient;
@@ -25,6 +28,9 @@ class GitHubHandler
     /** @var PullRequestRepository */
     private $pullRequestRepository;
 
+    /** @var PullRequestReviewRepository */
+    private $pullRequestReviewRepository;
+
     /** @var PullRequestLabelRepository */
     private $pullRequestLabelRepository;
 
@@ -37,19 +43,17 @@ class GitHubHandler
     public function __construct(
         GithubClient $gitHubClient,
         PullRequestRepository $pullRequestRepository,
+        PullRequestReviewRepository $pullRequestReviewRepository,
         PullRequestLabelRepository $pullRequestLabelRepository,
         JiraIssueRepository $jiraIssueRepository,
         EventDispatcherInterface $eventDispatcher
     ) {
-        $this->gitHubClient          = $gitHubClient;
-        $this->pullRequestRepository = $pullRequestRepository;
-        $this->jiraIssueRepository   = $jiraIssueRepository;
-        $this->eventDispatcher       = $eventDispatcher;
-    }
-
-    public function setReviewsOfPullRequest(PullRequest &$pullRequest)
-    {
-        $pullRequest->setReviews(array_reverse($this->getPullRequestReviews($pullRequest)));
+        $this->gitHubClient                = $gitHubClient;
+        $this->pullRequestRepository       = $pullRequestRepository;
+        $this->pullRequestReviewRepository = $pullRequestReviewRepository;
+        $this->pullRequestLabelRepository  = $pullRequestLabelRepository;
+        $this->jiraIssueRepository         = $jiraIssueRepository;
+        $this->eventDispatcher             = $eventDispatcher;
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
@@ -98,16 +102,6 @@ class GitHubHandler
         }
     }
 
-    public function getPullRequestReviews(PullRequest $pullRequest)
-    {
-        return $this->gitHubClient->api('pull_request')->reviews()->all(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber(),
-            ['per_page' => 50]
-        );
-    }
-
     public function isBranchIgnored(string $branchName): bool
     {
         $branchName         = strtoupper($branchName);
@@ -119,18 +113,16 @@ class GitHubHandler
 
     public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
-        if (empty($pullRequest->getReviews())) {
-            $this->setReviewsOfPullRequest($pullRequest);
-        }
-
         $approveCount = 0;
+        $reviews      = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
 
-        foreach ($pullRequest->getReviews() as $review) {
-            if (self::CHANGES_REQUESTED === $review['state']) {
+        /** @var PullRequestReview $review */
+        foreach ($reviews as $review) {
+            if (self::CHANGES_REQUESTED === $review->getState()) {
                 return false;
             }
 
-            if (self::APPROVED === $review['state']) {
+            if (self::APPROVED === $review->getState()) {
                 ++$approveCount;
 
                 if ($approveCount >= getenv('GITHUB_APPROVE_COUNT')) {
@@ -163,7 +155,7 @@ class GitHubHandler
 
         $occupiedByTheSamePullRequest = (
             1 === \count($pullRequests)
-            && array_pop($pullRequests)->getNumber() === $pullRequest->getNumber()
+            && array_pop($pullRequests)->getId() === $pullRequest->getId()
         );
 
         return 0 === \count($pullRequests)
@@ -351,14 +343,14 @@ class GitHubHandler
 
     public function updatePullRequestBody(PullRequest $pullRequest, string $body)
     {
-        $pullRequestData = $this->gitHubClient->api('pull_request')->update(
+        $pullRequestData = $this->gitHubClient->pullRequests()->update(
             getenv('GITHUB_REPOSITORY_OWNER'),
             getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber(),
+            $pullRequest->getId(),
             ['body' => $body]
         );
 
-        return new PullRequest($pullRequestData);
+        return PullRequestFactory::fromArray($pullRequestData);
     }
 
     /**

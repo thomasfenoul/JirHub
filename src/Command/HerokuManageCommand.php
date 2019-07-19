@@ -15,7 +15,7 @@ class HerokuManageCommand extends Command
     /** @var LoggerInterface */
     protected $logger;
 
-    /** @var HerokuHandler  */
+    /** @var HerokuHandler */
     private $herokuHandler;
 
     /** @var string */
@@ -25,7 +25,7 @@ class HerokuManageCommand extends Command
     {
         parent::__construct();
 
-        $this->logger = $logger;
+        $this->logger        = $logger;
         $this->herokuHandler = $herokuHandler;
     }
 
@@ -55,25 +55,25 @@ class HerokuManageCommand extends Command
     }
 
     /**
-     * @param InputInterface $input
-     * @param OutputInterface $output
      * @throws GuzzleException
      */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $this->logger->info(sprintf('%s : exécution de la commande', self::$defaultName));
 
-        $action = $input->getOption('action');
-        $appNames = explode(",", $input->getOption('apps'));
-        $dynoTypes = explode(",", $input->getOption('types'));
+        $action    = $input->getOption('action');
+        $appNames  = explode(',', $input->getOption('apps'));
+        $dynoTypes = explode(',', $input->getOption('types'));
 
         switch ($action) {
-            case "up":
+            case 'up':
                 $this->herokuHandler->updateDynoQuantity($appNames, $dynoTypes, 1);
+
                 break;
 
-            case "down":
+            case 'down':
                 $this->herokuHandler->updateDynoQuantity($appNames, $dynoTypes, 0);
+
                 break;
         }
     }

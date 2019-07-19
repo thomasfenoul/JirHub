@@ -45,7 +45,7 @@ class SlackSubscriber implements EventSubscriberInterface
     {
         try {
             $subject = $event->getReviewEnvironment();
-            $blame   = '(demander à ' . $event->getPullRequest()->getUser() . ' de retrouver la tâche Jira)';
+            $blame   = '(demander à ' . $event->getPullRequest()->getUser()->getLogin() . ' de retrouver la tâche Jira)';
 
             if (null !== $event->getJiraIssueKey()) {
                 $subject = JiraHelper::buildIssueUrlFromIssueName($event->getJiraIssueKey());
