@@ -1,0 +1,3 @@
+parameters:
+    heroku.domain: '%env(HEROKU_DOMAIN)%'
+    heroku.api_key: '%env(HEROKU_API_KEY)%'

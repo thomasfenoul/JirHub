@@ -7,6 +7,7 @@
         "ext-iconv": "*",
         "ext-json": "*",
         "friendsofphp/php-cs-fixer": "^2.15",
+        "guzzlehttp/guzzle": "^6.3",
         "guzzlehttp/psr7": "^1.4",
         "jolicode/slack-php-api": "^1.0",
         "knplabs/github-api": "^2.10",

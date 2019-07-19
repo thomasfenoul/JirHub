@@ -42,6 +42,11 @@ services:
         factory: ['JoliCode\Slack\ClientFactory', create]
         arguments: ['%env(SLACK_TOKEN)%']
 
+    App\External\HerokuApi:
+        arguments:
+            $domain: '%heroku.domain%'
+            $apiKey: '%heroku.api_key%'
+
     App\Dashboard\Query\ReviewEnvironments: '@App\Dashboard\Query\Adapter\FromGitHubHandlerReviewEnvironments'
     App\Dashboard\Query\PullRequestsToDeploy: '@App\Dashboard\Query\Adapter\FromGitHubHandlerPullRequestsToDeploy'
     App\Dashboard\Query\PullRequestsToMergeOnDev: '@App\Dashboard\Query\Adapter\FromGitHubHandlerPullRequestsToMergeOnDev'
