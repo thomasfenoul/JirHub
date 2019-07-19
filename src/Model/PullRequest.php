@@ -78,6 +78,26 @@ class PullRequest
         return $this->labels;
     }
 
+    public function addLabel(string $label): self
+    {
+        if (false === \in_array($label, $this->labels, true)) {
+            $this->labels[] = $label;
+        }
+
+        return $this;
+    }
+
+    public function removeLabel(string $label): self
+    {
+        $index = array_search($label, $this->labels, true);
+
+        if (false !== $index) {
+            unset($this->labels[$index]);
+        }
+
+        return $this;
+    }
+
     public function getReviews(): array
     {
         return $this->reviews;

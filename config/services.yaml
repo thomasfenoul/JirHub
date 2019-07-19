@@ -19,6 +19,11 @@ services:
             $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
             $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
 
+    App\Repository\GitHub\PullRequestLabelRepository:
+        arguments:
+            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
+            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+
     public.logger:
         alias: 'logger'
         public: true

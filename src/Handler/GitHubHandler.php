@@ -5,6 +5,7 @@ namespace App\Handler;
 use App\Event\LabelsAppliedEvent;
 use App\Helper\JiraHelper;
 use App\Model\PullRequest;
+use App\Repository\GitHub\PullRequestLabelRepository;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestSearchFilters;
 use App\Repository\Jira\JiraIssueRepository;
@@ -24,6 +25,9 @@ class GitHubHandler
     /** @var PullRequestRepository */
     private $pullRequestRepository;
 
+    /** @var PullRequestLabelRepository */
+    private $pullRequestLabelRepository;
+
     /** @var JiraIssueRepository */
     private $jiraIssueRepository;
 
@@ -33,6 +37,7 @@ class GitHubHandler
     public function __construct(
         GithubClient $gitHubClient,
         PullRequestRepository $pullRequestRepository,
+        PullRequestLabelRepository $pullRequestLabelRepository,
         JiraIssueRepository $jiraIssueRepository,
         EventDispatcherInterface $eventDispatcher
     ) {
@@ -91,26 +96,6 @@ class GitHubHandler
         } catch (\Exception $e) {
             return null;
         }
-    }
-
-    public function addLabelToPullRequest(string $label, PullRequest $pullRequest)
-    {
-        $this->gitHubClient->api('issue')->labels()->add(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber(),
-            $label
-        );
-    }
-
-    public function removeLabelFromPullRequest(string $label, PullRequest $pullRequest)
-    {
-        $this->gitHubClient->api('issue')->labels()->remove(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber(),
-            $label
-        );
     }
 
     public function getPullRequestReviews(PullRequest $pullRequest)
@@ -188,8 +173,7 @@ class GitHubHandler
     public function checkDeployability(
         string $headBranchName,
         string $reviewBranchName,
-        ?PullRequest $pullRequest = null,
-        bool $force = false
+        ?PullRequest $pullRequest = null
     ) {
         if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
             return 'OK';
@@ -234,7 +218,10 @@ class GitHubHandler
 
         foreach ($reviewLabels as $reviewLabel) {
             if ($this->hasLabel($pullRequest, $reviewLabel)) {
-                $this->removeLabelFromPullRequest($reviewLabel, $pullRequest);
+                $this->pullRequestLabelRepository->delete(
+                    $pullRequest,
+                    $reviewLabel
+                );
             }
         }
     }
@@ -265,16 +252,19 @@ class GitHubHandler
     /**
      * @throws JiraException
      */
-    public function applyLabels(string $headBranchName, string $reviewBranchName, bool $force = false): bool
+    public function applyLabels(string $headBranchName, string $reviewBranchName): bool
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        if ('OK' !== $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest, $force)) {
+        if ('OK' !== $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
             return false;
         }
 
         $this->removeReviewLabels($pullRequest);
-        $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName, $pullRequest);
+        $this->pullRequestLabelRepository->create(
+            $pullRequest,
+            getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName
+        );
 
         $jiraIssueKey = JiraHelper::extractIssueKeyFromString($headBranchName)
             ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle());
@@ -305,7 +295,10 @@ class GitHubHandler
                 || $this->isValidated($pullRequest)
             )
         ) {
-            $this->removeLabelFromPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
+            $this->pullRequestLabelRepository->delete(
+                $pullRequest,
+                getenv('GITHUB_REVIEW_REQUIRED_LABEL')
+            );
         }
 
         if (
@@ -315,7 +308,10 @@ class GitHubHandler
             && !$this->isDeployed($pullRequest)
             && !$this->isValidated($pullRequest)
         ) {
-            $this->addLabelToPullRequest(getenv('GITHUB_REVIEW_REQUIRED_LABEL'), $pullRequest);
+            $this->pullRequestLabelRepository->create(
+                $pullRequest,
+                getenv('GITHUB_REVIEW_REQUIRED_LABEL')
+            );
 
             if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
                 $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
