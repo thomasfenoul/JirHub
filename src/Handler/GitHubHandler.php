@@ -2,6 +2,7 @@
 
 namespace App\Handler;
 
+use App\Dashboard\Handler\DashboardHandler;
 use App\Event\LabelsAppliedEvent;
 use App\Factory\PullRequestFactory;
 use App\Helper\JiraHelper;
@@ -15,6 +16,7 @@ use App\Repository\Jira\JiraIssueRepository;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
 use JiraRestApi\JiraException;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class GitHubHandler
@@ -40,13 +42,17 @@ class GitHubHandler
     /** @var EventDispatcherInterface $eventDispatcher */
     private $eventDispatcher;
 
+    /** @var FilesystemAdapter */
+    private $cache;
+
     public function __construct(
         GithubClient $gitHubClient,
         PullRequestRepository $pullRequestRepository,
         PullRequestReviewRepository $pullRequestReviewRepository,
         PullRequestLabelRepository $pullRequestLabelRepository,
         JiraIssueRepository $jiraIssueRepository,
-        EventDispatcherInterface $eventDispatcher
+        EventDispatcherInterface $eventDispatcher,
+        FilesystemAdapter $cache
     ) {
         $this->gitHubClient                = $gitHubClient;
         $this->pullRequestRepository       = $pullRequestRepository;
@@ -54,6 +60,7 @@ class GitHubHandler
         $this->pullRequestLabelRepository  = $pullRequestLabelRepository;
         $this->jiraIssueRepository         = $jiraIssueRepository;
         $this->eventDispatcher             = $eventDispatcher;
+        $this->cache                       = $cache;
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
@@ -358,6 +365,8 @@ class GitHubHandler
      */
     public function synchronize()
     {
+        $this->cache->deleteItem(DashboardHandler::CACHE_KEY);
+
         $pullRequests = $this->pullRequestRepository->search();
 
         /** @var PullRequest $pullRequest */
