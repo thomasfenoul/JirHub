@@ -2,8 +2,11 @@
 
 namespace App\Repository\GitHub;
 
+use App\Event\PullRequestMergedEvent;
+use App\Event\PullRequestMergeFailureEvent;
 use App\Model\PullRequest;
 use Github\Client;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class PullRequestRepository
 {
@@ -16,11 +19,19 @@ class PullRequestRepository
     /** @var string */
     private $repositoryName;
 
-    public function __construct(Client $client, string $repositoryOwner, string $repositoryName)
-    {
+    /** @var EventDispatcherInterface */
+    private $eventDispatcher;
+
+    public function __construct(
+        Client $client,
+        string $repositoryOwner,
+        string $repositoryName,
+        EventDispatcherInterface $eventDispatcher
+    ) {
         $this->client          = $client;
         $this->repositoryOwner = $repositoryOwner;
         $this->repositoryName  = $repositoryName;
+        $this->eventDispatcher = $eventDispatcher;
     }
 
     public function fetch($id): PullRequest
@@ -39,7 +50,10 @@ class PullRequestRepository
      */
     public function search(array $parameters = []): array
     {
-        $apiParameters = [];
+        $apiParameters = [
+            PullRequestSearchFilters::STATE            => 'open',
+            PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+        ];
 
         if (\array_key_exists(PullRequestSearchFilters::RESULTS_PER_PAGE, $parameters)) {
             $apiParameters[PullRequestSearchFilters::RESULTS_PER_PAGE] = $parameters[PullRequestSearchFilters::RESULTS_PER_PAGE];
@@ -109,8 +123,22 @@ class PullRequestRepository
         return;
     }
 
-    public function merge(PullRequest $pullRequest): void
+    public function merge(PullRequest $pullRequest, $mergeMethod = 'squash'): void
     {
-        return;
+        try {
+            $this->client->pullRequests()->merge(
+                $this->repositoryOwner,
+                $this->repositoryName,
+                $pullRequest->getNumber(),
+                'Merged by JirHub',
+                $pullRequest->getHeadSha(),
+                $mergeMethod,
+                $pullRequest->getTitle()
+            );
+        } catch (\Exception $e) {
+            $this->eventDispatcher->dispatch(PullRequestMergeFailureEvent::NAME, new PullRequestMergeFailureEvent($pullRequest, $e->getMessage()));
+        }
+
+        $this->eventDispatcher->dispatch(PullRequestMergedEvent::NAME, new PullRequestMergedEvent($pullRequest));
     }
 }

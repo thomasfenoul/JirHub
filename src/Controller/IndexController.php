@@ -3,12 +3,12 @@
 namespace App\Controller;
 
 use App\Handler\GitHubHandler;
+use App\Repository\GitHub\PullRequestRepository;
 use JiraRestApi\JiraException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
-use Psr\Log\LoggerInterface;
 
 class IndexController extends Controller
 {
@@ -41,17 +41,21 @@ class IndexController extends Controller
     /**
      * @Route("/jira_webhook", name="jira_webhook", methods={"POST"})
      */
-    public function jiraWebhookAction(Request $request, GitHubHandler $gitHubHandler): Response
+    public function jiraWebhookAction(Request $request, PullRequestRepository $pullRequestRepository): Response
     {
         $data   = json_decode($request->getContent(), true);
         $status = $data['issue']['fields']['status']['name'];
         $key    = $data['issue']['key'];
 
         if ($status === getenv('JIRA_STATUS_DONE')) {
-            $pullRequest = $gitHubHandler->getOpenPullRequestFromJiraIssueKey($key);
+            $pullRequest = array_pop($pullRequestRepository->search(['head_ref' => $key]));
+
+            if (null === $pullRequest) {
+                $pullRequest = array_pop($pullRequestRepository->search(['title' => $key]));
+            }
 
             if (null !== $pullRequest) {
-                $gitHubHandler->mergePullRequest($pullRequest);
+                $pullRequestRepository->merge($pullRequest);
             }
         }
 
@@ -63,11 +67,8 @@ class IndexController extends Controller
      *
      * @throws JiraException
      */
-    public function githubWebhookAction(Request $request, GitHubHandler $gitHubHandler, LoggerInterface $logger): Response
+    public function githubWebhookAction(GitHubHandler $gitHubHandler): Response
     {
-        $logger->info(json_encode($request->headers->all()));
-        $logger->info($request->getContent());
-
         $gitHubHandler->synchronize();
 
         return new Response('', Response::HTTP_NO_CONTENT);

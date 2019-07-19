@@ -3,8 +3,6 @@
 namespace App\Handler;
 
 use App\Event\LabelsAppliedEvent;
-use App\Event\PullRequestMergedEvent;
-use App\Event\PullRequestMergeFailureEvent;
 use App\Helper\JiraHelper;
 use App\Model\PullRequest;
 use App\Repository\GitHub\PullRequestRepository;
@@ -44,17 +42,6 @@ class GitHubHandler
         $this->eventDispatcher       = $eventDispatcher;
     }
 
-    public static function arraysToPullRequests(array $pullRequestsData)
-    {
-        $pullRequests = [];
-
-        foreach ($pullRequestsData as $pullRequestData) {
-            $pullRequests[] = new PullRequest($pullRequestData);
-        }
-
-        return $pullRequests;
-    }
-
     public function setReviewsOfPullRequest(PullRequest &$pullRequest)
     {
         $pullRequest->setReviews(array_reverse($this->getPullRequestReviews($pullRequest)));
@@ -63,11 +50,7 @@ class GitHubHandler
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
     {
         $pullRequests = $this->pullRequestRepository->search(
-            [
-                PullRequestSearchFilters::STATE            => 'open',
-                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
-                PullRequestSearchFilters::HEAD_REF         => $headBranchName,
-            ]
+            [PullRequestSearchFilters::HEAD_REF => $headBranchName]
         );
 
         return (true === empty($pullRequests)) ? null : array_pop($pullRequests);
@@ -75,12 +58,7 @@ class GitHubHandler
 
     public function getOpenPullRequestFromJiraIssueKey(string $jiraIssueName)
     {
-        $pullRequests = $this->pullRequestRepository->search(
-            [
-                PullRequestSearchFilters::STATE            => 'open',
-                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
-            ]
-        );
+        $pullRequests = $this->pullRequestRepository->search();
 
         /** @var PullRequest $pullRequest */
         foreach ($pullRequests as $pullRequest) {
@@ -145,25 +123,6 @@ class GitHubHandler
         );
     }
 
-    public function mergePullRequest(PullRequest $pullRequest, string $mergeMethod = 'squash')
-    {
-        try {
-            $this->gitHubClient->api('pull_request')->merge(
-                getenv('GITHUB_REPOSITORY_OWNER'),
-                getenv('GITHUB_REPOSITORY_NAME'),
-                $pullRequest->getNumber(),
-                'Merged by JirHub',
-                $pullRequest->getHeadSha(),
-                $mergeMethod,
-                $pullRequest->getTitle()
-            );
-        } catch (\Exception $e) {
-            $this->eventDispatcher->dispatch(PullRequestMergeFailureEvent::NAME, new PullRequestMergeFailureEvent($pullRequest, $e->getMessage()));
-        }
-
-        $this->eventDispatcher->dispatch(PullRequestMergedEvent::NAME, new PullRequestMergedEvent($pullRequest));
-    }
-
     public function isBranchIgnored(string $branchName): bool
     {
         $branchName         = strtoupper($branchName);
@@ -210,18 +169,27 @@ class GitHubHandler
     {
         $pullRequests = $this->pullRequestRepository->search(
             [
-                PullRequestSearchFilters::STATE            => 'open',
-                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
-                PullRequestSearchFilters::LABELS           => [getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName],
+                PullRequestSearchFilters::LABELS => [
+                    getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName,
+                ],
             ]
         );
 
+        $occupiedByTheSamePullRequest = (
+            1 === \count($pullRequests)
+            && array_pop($pullRequests)->getNumber() === $pullRequest->getNumber()
+        );
+
         return 0 === \count($pullRequests)
-            || (1 === \count($pullRequests) && array_pop($pullRequests)->getNumber() === $pullRequest->getNumber());
+            || $occupiedByTheSamePullRequest;
     }
 
-    public function checkDeployability(string $headBranchName, string $reviewBranchName, ?PullRequest $pullRequest = null, bool $force = false)
-    {
+    public function checkDeployability(
+        string $headBranchName,
+        string $reviewBranchName,
+        ?PullRequest $pullRequest = null,
+        bool $force = false
+    ) {
         if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
             return 'OK';
         }
@@ -411,12 +379,7 @@ class GitHubHandler
      */
     public function synchronize()
     {
-        $pullRequests = $this->pullRequestRepository->search(
-            [
-                PullRequestSearchFilters::STATE            => 'open',
-                PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
-            ]
-        );
+        $pullRequests = $this->pullRequestRepository->search();
 
         /** @var PullRequest $pullRequest */
         foreach ($pullRequests as $pullRequest) {
