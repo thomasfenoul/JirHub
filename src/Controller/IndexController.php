@@ -5,7 +5,6 @@ namespace App\Controller;
 use App\Handler\GitHubHandler;
 use App\Repository\GitHub\PullRequestRepository;
 use JiraRestApi\JiraException;
-use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -34,16 +33,10 @@ class IndexController extends Controller
      *
      * @throws JiraException
      */
-    public function applyAction(Request $request, GitHubHandler $gitHubHandler, LoggerInterface $logger): Response
+    public function applyAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
         $env    = $request->get('env');
-
-        try {
-            $gitHubHandler->applyLabels($branch, $env);
-        } catch (\Exception $e){
-            $logger->error($e->getMessage());
-        }
 
         return new Response((int) $gitHubHandler->applyLabels($branch, $env));
     }
