@@ -254,7 +254,12 @@ class GitHubHandler
      */
     public function applyLabels(string $headBranchName, string $reviewBranchName): bool
     {
+        $this->logger->debug('START getOpenPullRequestFromHeadBranch');
+
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
+
+        $this->logger->debug('END getOpenPullRequestFromHeadBranch');
+
 
         if ('OK' !== $deployability = $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
             $this->logger->error($deployability);
@@ -262,24 +267,46 @@ class GitHubHandler
             return false;
         }
 
+        $this->logger->debug('START removeReviewLabels');
 
         $this->removeReviewLabels($pullRequest);
+
+        $this->logger->debug('END removeReviewLabels');
+
+        $this->logger->debug('START pullRequestLabelRepository->create');
+
         $this->pullRequestLabelRepository->create(
             $pullRequest,
             getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName
         );
 
+        $this->logger->debug('END pullRequestLabelRepository->create');
+
+
+        $this->logger->debug('START extractIssueKeyFromString');
+
         $jiraIssueKey = JiraHelper::extractIssueKeyFromString($headBranchName)
             ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle());
 
+        $this->logger->debug('END extractIssueKeyFromString '. $jiraIssueKey);
+
+
         if (null !== $jiraIssueKey) {
+            $this->logger->debug('START transitionIssueTo');
+
             $this->jiraIssueRepository->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
+
+            $this->logger->debug('END transitionIssueTo');
         }
+
+        $this->logger->debug('START LabelsAppliedEvent');
 
         $this->eventDispatcher->dispatch(
             LabelsAppliedEvent::NAME,
             new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey)
         );
+        $this->logger->debug('END LabelsAppliedEvent');
+
 
         return true;
     }
