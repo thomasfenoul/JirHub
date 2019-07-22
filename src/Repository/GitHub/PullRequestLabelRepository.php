@@ -35,9 +35,9 @@ class PullRequestLabelRepository
         }
 
         $this->client->issue()->labels()->add(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber(),
+            $this->repositoryOwner,
+            $this->repositoryName,
+            $pullRequest->getId(),
             $label
         );
 
@@ -53,9 +53,9 @@ class PullRequestLabelRepository
         }
 
         $this->client->issue()->labels()->remove(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getNumber(),
+            $this->repositoryOwner,
+            $this->repositoryName,
+            $pullRequest->getId(),
             $label
         );
 
