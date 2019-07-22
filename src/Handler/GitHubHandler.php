@@ -254,58 +254,58 @@ class GitHubHandler
      */
     public function applyLabels(string $headBranchName, string $reviewBranchName): bool
     {
-        $this->logger->error('START getOpenPullRequestFromHeadBranch');
+        var_dump('START getOpenPullRequestFromHeadBranch');
 
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        $this->logger->error('END getOpenPullRequestFromHeadBranch');
+        var_dump('END getOpenPullRequestFromHeadBranch');
 
 
         if ('OK' !== $deployability = $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
-            $this->logger->error($deployability);
+            var_dump($deployability);
 
             return false;
         }
 
-        $this->logger->error('START removeReviewLabels');
+        var_dump('START removeReviewLabels');
 
         $this->removeReviewLabels($pullRequest);
 
-        $this->logger->error('END removeReviewLabels');
+        var_dump('END removeReviewLabels');
 
-        $this->logger->error('START pullRequestLabelRepository->create');
+        var_dump('START pullRequestLabelRepository->create');
 
         $this->pullRequestLabelRepository->create(
             $pullRequest,
             getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName
         );
 
-        $this->logger->error('END pullRequestLabelRepository->create');
+        var_dump('END pullRequestLabelRepository->create');
 
 
-        $this->logger->error('START extractIssueKeyFromString');
+        var_dump('START extractIssueKeyFromString');
 
         $jiraIssueKey = JiraHelper::extractIssueKeyFromString($headBranchName)
             ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle());
 
-        $this->logger->error('END extractIssueKeyFromString '. $jiraIssueKey);
+        var_dump('END extractIssueKeyFromString '. $jiraIssueKey);
 
 
         if (null !== $jiraIssueKey) {
-            $this->logger->error('START transitionIssueTo');
+            var_dump('START transitionIssueTo');
 
             $this->jiraIssueRepository->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
 
-            $this->logger->error('END transitionIssueTo');
+            var_dump('END transitionIssueTo');
         }
 
-        $this->logger->error('START LabelsAppliedEvent');
+        var_dump('START LabelsAppliedEvent');
 
         $this->eventDispatcher->dispatch(
             LabelsAppliedEvent::NAME,
             new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey)
         );
-        $this->logger->error('END LabelsAppliedEvent');
+        var_dump('END LabelsAppliedEvent');
 
 
         return true;
