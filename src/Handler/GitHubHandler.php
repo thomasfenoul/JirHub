@@ -15,12 +15,13 @@ use App\Repository\Jira\JiraIssueRepository;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
 use JiraRestApi\JiraException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class GitHubHandler
 {
     const CHANGES_REQUESTED = 'CHANGES_REQUESTED';
-    const APPROVED          = 'APPROVED';
+    const APPROVED = 'APPROVED';
 
     /** @var GitHubClient */
     private $gitHubClient;
@@ -40,20 +41,26 @@ class GitHubHandler
     /** @var EventDispatcherInterface $eventDispatcher */
     private $eventDispatcher;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     public function __construct(
         GithubClient $gitHubClient,
         PullRequestRepository $pullRequestRepository,
         PullRequestReviewRepository $pullRequestReviewRepository,
         PullRequestLabelRepository $pullRequestLabelRepository,
         JiraIssueRepository $jiraIssueRepository,
-        EventDispatcherInterface $eventDispatcher
-    ) {
-        $this->gitHubClient                = $gitHubClient;
-        $this->pullRequestRepository       = $pullRequestRepository;
+        EventDispatcherInterface $eventDispatcher,
+        LoggerInterface $logger
+    )
+    {
+        $this->gitHubClient = $gitHubClient;
+        $this->pullRequestRepository = $pullRequestRepository;
         $this->pullRequestReviewRepository = $pullRequestReviewRepository;
-        $this->pullRequestLabelRepository  = $pullRequestLabelRepository;
-        $this->jiraIssueRepository         = $jiraIssueRepository;
-        $this->eventDispatcher             = $eventDispatcher;
+        $this->pullRequestLabelRepository = $pullRequestLabelRepository;
+        $this->jiraIssueRepository = $jiraIssueRepository;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->logger = $logger;
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
@@ -104,9 +111,9 @@ class GitHubHandler
 
     public function isBranchIgnored(string $branchName): bool
     {
-        $branchName         = strtoupper($branchName);
+        $branchName = strtoupper($branchName);
         $explodedBranchName = explode('/', $branchName);
-        $ignoredBranches    = explode(',', getenv('GITHUB_IGNORED_PREFIXES'));
+        $ignoredBranches = explode(',', getenv('GITHUB_IGNORED_PREFIXES'));
 
         return \in_array($explodedBranchName[0], $ignoredBranches);
     }
@@ -114,7 +121,7 @@ class GitHubHandler
     public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
         $approveCount = 0;
-        $reviews      = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
+        $reviews = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
 
         /** @var PullRequestReview $review */
         foreach ($reviews as $review) {
@@ -166,7 +173,8 @@ class GitHubHandler
         string $headBranchName,
         string $reviewBranchName,
         ?PullRequest $pullRequest = null
-    ) {
+    )
+    {
         if ($headBranchName === getenv('GITHUB_DEFAULT_BASE_BRANCH')) {
             return 'OK';
         }
@@ -204,7 +212,7 @@ class GitHubHandler
 
     public function removeReviewLabels(PullRequest $pullRequest)
     {
-        $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
+        $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
         $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
         $reviewLabels[] = getenv('GITHUB_FORCE_LABEL');
 
@@ -248,9 +256,12 @@ class GitHubHandler
     {
         $pullRequest = $this->getOpenPullRequestFromHeadBranch($headBranchName);
 
-        if ('OK' !== $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
+        if ('OK' !== $deployability = $this->checkDeployability($headBranchName, $reviewBranchName, $pullRequest)) {
+            $this->logger->error($deployability);
+
             return false;
         }
+
 
         $this->removeReviewLabels($pullRequest);
         $this->pullRequestLabelRepository->create(
@@ -334,7 +345,7 @@ class GitHubHandler
     public function addJiraLinkToDescription(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
         $pullRequestBody = $pullRequest->getBody();
-        $jiraIssueUrl    = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
+        $jiraIssueUrl = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
 
         if (false === strpos($pullRequestBody, $jiraIssueUrl)) {
             $this->updatePullRequestBody($pullRequest, $jiraIssueUrl . "\n\n" . $pullRequestBody);
