@@ -110,15 +110,6 @@ class GitHubHandler
         }
     }
 
-    public function isBranchIgnored(string $branchName): bool
-    {
-        $branchName         = strtoupper($branchName);
-        $explodedBranchName = explode('/', $branchName);
-        $ignoredBranches    = explode(',', getenv('GITHUB_IGNORED_PREFIXES'));
-
-        return \in_array($explodedBranchName[0], $ignoredBranches);
-    }
-
     public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
         $approveCount = 0;
@@ -289,8 +280,7 @@ class GitHubHandler
         if (
             $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
             && (
-                $this->isBranchIgnored($pullRequest->getHeadRef())
-                || !$this->isPullRequestApproved($pullRequest)
+                !$this->isPullRequestApproved($pullRequest)
                 || $this->isDeployed($pullRequest)
                 || $this->isValidated($pullRequest)
             )
@@ -303,7 +293,6 @@ class GitHubHandler
 
         if (
             !$this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
-            && !$this->isBranchIgnored($pullRequest->getHeadRef())
             && $this->isPullRequestApproved($pullRequest)
             && !$this->isDeployed($pullRequest)
             && !$this->isValidated($pullRequest)
