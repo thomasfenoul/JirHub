@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Handler\GitHubHandler;
 use App\Repository\GitHub\PullRequestRepository;
 use JiraRestApi\JiraException;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\Controller;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -69,10 +70,14 @@ class IndexController extends Controller
      * @Route("/github_webhook", name="github_webhook", methods={"POST"})
      *
      * @throws JiraException
+     * @throws InvalidArgumentException
      */
-    public function githubWebhookAction(GitHubHandler $gitHubHandler): Response
-    {
-        $gitHubHandler->synchronize();
+    public function githubWebhookAction(
+        Request $request,
+        GitHubHandler $gitHubHandler
+    ): Response {
+        $data = json_decode($request->getContent(), true);
+        $gitHubHandler->synchronize($data);
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }

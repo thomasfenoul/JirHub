@@ -365,33 +365,50 @@ class GitHubHandler
      * @throws InvalidArgumentException
      * @throws JiraException
      */
-    public function synchronize()
+    public function synchronize(array $webhookData): void
     {
         $this->cache->deleteItem(DashboardHandler::CACHE_KEY);
 
-        $pullRequests = $this->pullRequestRepository->search();
+        $pullRequest = null;
 
-        /** @var PullRequest $pullRequest */
-        foreach ($pullRequests as $pullRequest) {
-            $jiraIssue = $this->getJiraIssueFromPullRequest($pullRequest);
+        if (true === \array_key_exists('pull_request', $webhookData)) {
+            $pullRequest = $this->pullRequestRepository->fetch($webhookData['pull_request']['number']);
+        }
 
-            if (null === $jiraIssue) {
-                continue;
+        if (true === \array_key_exists('ref', $webhookData)) {
+            $pullRequests = $this->pullRequestRepository->search(
+                [
+                    PullRequestSearchFilters::HEAD_REF => $webhookData['ref'],
+                ]
+            );
+
+            if (false === empty($pullRequests)) {
+                $pullRequest = array_pop($pullRequests);
             }
+        }
 
-            $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
+        if (null === $pullRequest) {
+            return;
+        }
 
-            if (\in_array($jiraIssue->fields->status->name, [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')], true)) {
-                continue;
-            }
+        $jiraIssue = $this->getJiraIssueFromPullRequest($pullRequest);
 
-            $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
+        if (null === $jiraIssue) {
+            return;
+        }
 
-            if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
-                if (false === $this->isPullRequestApproved($pullRequest)) {
-                    if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
-                        $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
-                    }
+        $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
+
+        if (\in_array($jiraIssue->fields->status->name, [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')], true)) {
+            return;
+        }
+
+        $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
+
+        if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
+            if (false === $this->isPullRequestApproved($pullRequest)) {
+                if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
+                    $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
                 }
             }
         }
