@@ -178,7 +178,7 @@ class GitHubHandler
             return 'Pull Request not found.';
         }
 
-        if ($this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName)) {
+        if ($pullRequest->hasLabel(getenv('GITHUB_REVIEW_ENVIRONMENT_PREFIX') . $reviewBranchName)) {
             return 'OK';
         }
 
@@ -208,7 +208,7 @@ class GitHubHandler
         $reviewLabels[] = getenv('GITHUB_FORCE_LABEL');
 
         foreach ($reviewLabels as $reviewLabel) {
-            if ($this->hasLabel($pullRequest, $reviewLabel)) {
+            if ($pullRequest->hasLabel($reviewLabel)) {
                 $this->pullRequestLabelRepository->delete(
                     $pullRequest,
                     $reviewLabel
@@ -217,17 +217,12 @@ class GitHubHandler
         }
     }
 
-    public function hasLabel(PullRequest $pullRequest, string $search)
-    {
-        return \in_array($search, $pullRequest->getLabels());
-    }
-
     public function isDeployed(PullRequest $pullRequest): bool
     {
         $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
 
         foreach ($reviewLabels as $reviewLabel) {
-            if ($this->hasLabel($pullRequest, $reviewLabel)) {
+            if ($pullRequest->hasLabel($reviewLabel)) {
                 return true;
             }
         }
@@ -237,7 +232,7 @@ class GitHubHandler
 
     public function isValidated(PullRequest $pullRequest): bool
     {
-        return $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_OK_LABEL'));
+        return $pullRequest->hasLabel(getenv('GITHUB_REVIEW_OK_LABEL'));
     }
 
     /**
@@ -278,7 +273,7 @@ class GitHubHandler
     public function handleReviewRequiredLabel(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
         if (
-            $this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+            $pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
             && (
                 !$this->isPullRequestApproved($pullRequest)
                 || $this->isDeployed($pullRequest)
@@ -292,7 +287,7 @@ class GitHubHandler
         }
 
         if (
-            !$this->hasLabel($pullRequest, getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+            !$pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
             && $this->isPullRequestApproved($pullRequest)
             && !$this->isDeployed($pullRequest)
             && !$this->isValidated($pullRequest)
@@ -316,7 +311,7 @@ class GitHubHandler
         $labels = explode(',', getenv('GITHUB_IN_PROGRESS_LABELS'));
 
         foreach ($labels as $label) {
-            if ($this->hasLabel($pullRequest, $label)) {
+            if ($pullRequest->hasLabel($label)) {
                 if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
                     $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_IN_PROGRESS'));
                 }

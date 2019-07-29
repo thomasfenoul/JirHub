@@ -98,9 +98,14 @@ class PullRequest
         return $this->labels;
     }
 
+    public function hasLabel(string $label): bool
+    {
+        return \in_array($label, $this->labels, true);
+    }
+
     public function addLabel(string $label): self
     {
-        if (false === \in_array($label, $this->labels, true)) {
+        if (false === $this->hasLabel($label)) {
             $this->labels[] = $label;
         }
 
