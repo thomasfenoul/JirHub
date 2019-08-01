@@ -154,6 +154,12 @@ html {
         }
       }
 
+      .pull_request_for_merge {
+        span.tag {
+          margin-right: 10px;
+        }
+      }
+
       ul {
         list-style: disc outside none;
         li{

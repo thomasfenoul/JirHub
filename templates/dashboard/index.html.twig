@@ -78,7 +78,10 @@
 
                 <ul>
                     {% for pullRequest in pull_requests_to_merge_on_dev %}
-                        <li>
+                        <li class="pull_request_for_merge">
+                            {% if 'Standby' in pullRequest.labels %}
+                                <span class="tag is-warning">Standby</span>
+                            {% endif %}
                             {{ pullRequest.getTitle }}<a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
                         </li>
                     {% endfor %}
