@@ -7,19 +7,15 @@ class ReviewEnvironment
     /** @var string $name */
     protected $name;
 
-    /** @var string $jiraIssueKey */
-    protected $jiraIssueKey;
-
     /** @var PullRequest $pullRequest */
     protected $pullRequest;
 
     /** @var string */
     private $pullRequestTitle;
 
-    public function __construct(string $name, ?string $jiraIssueKey = null, ?PullRequest $pullRequest = null)
+    public function __construct(string $name, ?PullRequest $pullRequest = null)
     {
         $this->name         = $name;
-        $this->jiraIssueKey = $jiraIssueKey;
         $this->pullRequest  = $pullRequest;
     }
 
@@ -40,23 +36,16 @@ class ReviewEnvironment
         return $this;
     }
 
-    public function getJiraIssueKey(): ?string
-    {
-        return $this->jiraIssueKey;
-    }
-
-    public function setJiraIssueKey(?string $jiraIssueKey = null): self
-    {
-        $this->jiraIssueKey = $jiraIssueKey;
-
-        return $this;
-    }
-
     public function getPullRequestTitle(): string
     {
         if (null === $this->pullRequestTitle) {
+            $issueKey = '';
+            if (null !== $this->pullRequest->getJiraIssue()) {
+                $issueKey = $this->pullRequest->getJiraIssue()->getKey();
+            }
+
             $this->pullRequestTitle = ucfirst(
-                trim(str_ireplace($this->getJiraIssueKey(), '', $this->pullRequest->getTitle()), ' :')
+                trim(str_ireplace($issueKey, '', $this->pullRequest->getTitle()), ' :')
             );
         }
 

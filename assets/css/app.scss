@@ -158,9 +158,13 @@ html {
         }
       }
 
-      .pull_request_for_merge {
+      .pull_requests {
         span.tag {
           margin-right: 10px;
+        }
+        .fab {
+          font-size: 1.3rem;
+          margin-left: 10px;
         }
       }
 

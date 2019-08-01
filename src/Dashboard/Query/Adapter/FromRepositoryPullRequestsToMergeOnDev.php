@@ -3,6 +3,8 @@
 namespace App\Dashboard\Query\Adapter;
 
 use App\Dashboard\Query\PullRequestsToMergeOnDev;
+use App\Helper\JiraHelper;
+use App\Model\JiraIssue;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestSearchFilters;
 

@@ -41,13 +41,17 @@
                                         </div>
                                     </div>
 
-                                    <span class="ta-number">{{ env.jiraIssueKey|upper|default('Unknown Jira Ticket') }}</span>
+                                    {% if env.pullRequest.getJiraIssue is not null %}
+                                        <span class="ta-number">{{ env.pullRequest.getJiraIssue.getKey|upper }}</span>
+                                    {% else %}
+                                        <span class="ta-number">Unknown Jira Ticket</span>
+                                    {% endif %}
                                     <span class="ta-title">{{ env.pullRequestTitle }}</span>
 
                                     <div class="links">
-                                        {% if env.jiraIssueKey is not null %}
+                                        {% if env.pullRequest.getJiraIssue is not null %}
                                             <span class="jira">
-                                                <a target="_blank" href="{{ "#{jira_host}/browse/#{env.jiraIssueKey}" }}"><i class="fab fa-jira"></i></a>
+                                                <a target="_blank" href="{{ env.pullRequest.getJiraIssue.getUri }}"><i class="fab fa-jira"></i></a>
                                             </span>
                                         {% endif %}
                                         <span class="github">
@@ -66,8 +70,17 @@
 
                 <ul>
                     {% for pullRequest in pull_requests_to_deploy %}
-                        <li>
-                            {{ pullRequest.getTitle }}<a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
+                        <li class="pull_requests">
+                            {% if 'Standby' in pullRequest.labels %}
+                                <span class="tag is-warning">Standby</span>
+                            {% endif %}
+
+                            {{ pullRequest.getTitle }}
+                            <a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
+
+                            {% if pullRequest.getJiraIssue is not null %}
+                                <a target="_blank" href="{{ pullRequest.getJiraIssue.getUri }}"> <i class="fab fa-jira"></i></a>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>
@@ -78,11 +91,16 @@
 
                 <ul>
                     {% for pullRequest in pull_requests_to_merge_on_dev %}
-                        <li class="pull_request_for_merge">
+                        <li class="pull_requests">
                             {% if 'Standby' in pullRequest.labels %}
                                 <span class="tag is-warning">Standby</span>
                             {% endif %}
-                            {{ pullRequest.getTitle }}<a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
+                            {{ pullRequest.getTitle }}
+                            <a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
+
+                            {% if pullRequest.getJiraIssue is not null %}
+                                <a target="_blank" href="{{ pullRequest.getJiraIssue.getUri }}"> <i class="fab fa-jira"></i></a>
+                            {% endif %}
                         </li>
                     {% endfor %}
                 </ul>

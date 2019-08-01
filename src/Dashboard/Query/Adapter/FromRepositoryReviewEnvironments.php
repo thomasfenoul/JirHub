@@ -4,9 +4,11 @@ namespace App\Dashboard\Query\Adapter;
 
 use App\Dashboard\Query\ReviewEnvironments;
 use App\Helper\JiraHelper;
+use App\Model\JiraIssue;
 use App\Model\ReviewEnvironment;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestSearchFilters;
+use GuzzleHttp\Psr7\Uri;
 
 class FromRepositoryReviewEnvironments implements ReviewEnvironments
 {
@@ -34,15 +36,7 @@ class FromRepositoryReviewEnvironments implements ReviewEnvironments
             );
 
             if (!empty($pullRequestsOnEnvironment)) {
-                $pullRequest = array_pop($pullRequestsOnEnvironment);
-
-                $environment
-                    ->setPullRequest($pullRequest)
-                    ->setJiraIssueKey(
-                        JiraHelper::extractIssueKeyFromString($pullRequest->getHeadRef())
-                        ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle())
-                    )
-                ;
+                $environment->setPullRequest(array_pop($pullRequestsOnEnvironment));
             }
         }
 

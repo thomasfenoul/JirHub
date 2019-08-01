@@ -2,6 +2,8 @@
 
 namespace App\Model;
 
+use App\Helper\JiraHelper;
+
 class PullRequest
 {
     /** @var int */
@@ -31,6 +33,9 @@ class PullRequest
     /** @var string[] */
     private $labels;
 
+    /** @var JiraIssue */
+    private $jiraIssue;
+
     public function __construct(
         int $id,
         string $title,
@@ -51,6 +56,12 @@ class PullRequest
         $this->headSha = $headSha;
         $this->user    = $user;
         $this->labels  = $labels;
+
+        $key = JiraHelper::extractIssueKeyFromString($this->headRef)
+            ?? JiraHelper::extractIssueKeyFromString($this->title);
+        if (null !== $key) {
+            $this->jiraIssue = new JiraIssue($key);
+        }
     }
 
     public function getId(): int
@@ -121,5 +132,10 @@ class PullRequest
         }
 
         return $this;
+    }
+
+    public function getJiraIssue(): ?JiraIssue
+    {
+        return $this->jiraIssue;
     }
 }
