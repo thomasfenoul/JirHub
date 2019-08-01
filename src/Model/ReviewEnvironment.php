@@ -13,6 +13,9 @@ class ReviewEnvironment
     /** @var PullRequest $pullRequest */
     protected $pullRequest;
 
+    /** @var string */
+    private $pullRequestTitle;
+
     public function __construct(string $name, ?string $jiraIssueKey = null, ?PullRequest $pullRequest = null)
     {
         $this->name         = $name;
@@ -47,5 +50,16 @@ class ReviewEnvironment
         $this->jiraIssueKey = $jiraIssueKey;
 
         return $this;
+    }
+
+    public function getPullRequestTitle(): string
+    {
+        if (null === $this->pullRequestTitle) {
+            $this->pullRequestTitle = ucfirst(
+                trim(str_ireplace($this->getJiraIssueKey(), '', $this->pullRequest->getTitle()), ' :')
+            );
+        }
+
+        return $this->pullRequestTitle;
     }
 }
