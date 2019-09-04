@@ -15,8 +15,8 @@ class ReviewEnvironment
 
     public function __construct(string $name, ?PullRequest $pullRequest = null)
     {
-        $this->name         = $name;
-        $this->pullRequest  = $pullRequest;
+        $this->name        = $name;
+        $this->pullRequest = $pullRequest;
     }
 
     public function getName(): string
@@ -40,6 +40,7 @@ class ReviewEnvironment
     {
         if (null === $this->pullRequestTitle) {
             $issueKey = '';
+
             if (null !== $this->pullRequest->getJiraIssue()) {
                 $issueKey = $this->pullRequest->getJiraIssue()->getKey();
             }

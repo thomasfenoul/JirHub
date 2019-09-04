@@ -59,6 +59,7 @@ class PullRequest
 
         $key = JiraHelper::extractIssueKeyFromString($this->headRef)
             ?? JiraHelper::extractIssueKeyFromString($this->title);
+
         if (null !== $key) {
             $this->jiraIssue = new JiraIssue($key);
         }

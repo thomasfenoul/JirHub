@@ -73,27 +73,6 @@ class GitHubHandler
         return (true === empty($pullRequests)) ? null : array_pop($pullRequests);
     }
 
-    public function getOpenPullRequestFromJiraIssueKey(string $jiraIssueName)
-    {
-        $pullRequests = $this->pullRequestRepository->search();
-
-        /** @var PullRequest $pullRequest */
-        foreach ($pullRequests as $pullRequest) {
-            if (false !== strpos(strtoupper($pullRequest->getHeadRef()), strtoupper($jiraIssueName))) {
-                return $pullRequest;
-            }
-        }
-
-        /** @var PullRequest $pullRequest */
-        foreach ($pullRequests as $pullRequest) {
-            if (false !== strpos(strtoupper($pullRequest->getTitle()), strtoupper($jiraIssueName))) {
-                return $pullRequest;
-            }
-        }
-
-        return null;
-    }
-
     public function getJiraIssueFromPullRequest(PullRequest $pullRequest): ?JiraIssue
     {
         $jiraIssueKey = JiraHelper::extractIssueKeyFromString($pullRequest->getHeadRef())
@@ -183,7 +162,10 @@ class GitHubHandler
         }
 
         if (empty($pullRequest) || null === $pullRequest) {
-            return 'We have not found any pull request with head branch "' . $headBranchName . '".';
+            return sprintf(
+                'We have not found any pull request with head branch "%s".',
+                $headBranchName
+            );
         }
 
         if (!$this->doesReviewBranchExists($reviewBranchName)) {
@@ -270,7 +252,7 @@ class GitHubHandler
     /**
      * @throws JiraException
      */
-    public function handleReviewRequiredLabel(PullRequest $pullRequest, JiraIssue $jiraIssue)
+    public function handleReviewRequiredLabel(PullRequest $pullRequest, ?JiraIssue $jiraIssue = null)
     {
         if (
             $pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
@@ -297,7 +279,10 @@ class GitHubHandler
                 getenv('GITHUB_REVIEW_REQUIRED_LABEL')
             );
 
-            if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')) {
+            if (
+                null !== $jiraIssue
+                && $jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')
+            ) {
                 $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
             }
         }
@@ -376,6 +361,7 @@ class GitHubHandler
         }
 
         $jiraIssue = $this->getJiraIssueFromPullRequest($pullRequest);
+        $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
 
         if (null === $jiraIssue) {
             return;
@@ -383,11 +369,13 @@ class GitHubHandler
 
         $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
 
-        if (\in_array($jiraIssue->fields->status->name, [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')], true)) {
+        if (\in_array(
+            $jiraIssue->fields->status->name,
+            [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')],
+            true
+        )) {
             return;
         }
-
-        $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
 
         if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
             if (false === $this->isPullRequestApproved($pullRequest)) {
