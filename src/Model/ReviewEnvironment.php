@@ -46,7 +46,7 @@ class ReviewEnvironment
             }
 
             $this->pullRequestTitle = ucfirst(
-                trim(str_ireplace($issueKey, '', $this->pullRequest->getTitle()), ' :')
+                trim(str_ireplace($issueKey, '', $this->pullRequest->getTitle()), ' :|')
             );
         }
 
