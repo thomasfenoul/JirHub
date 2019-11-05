@@ -2,8 +2,10 @@
 
 {% block body %}
 
+    <a href="/changelog" class="button is-normal" style="float: right;margin: 15px">view current changelog</a>
 
     <section class="section">
+
         <div class="container">
 
             <h1 class="title has-text-centered">JIRHUB STATUS</h1>
@@ -74,6 +76,9 @@
                             {% if 'Standby' in pullRequest.labels %}
                                 <span class="tag is-warning">Standby</span>
                             {% endif %}
+                            {% if 'WAIT' in pullRequest.labels %}
+                                <span class="tag is-danger">WAIT</span>
+                            {% endif %}
 
                             {{ pullRequest.getTitle }}
                             <a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
@@ -95,6 +100,10 @@
                             {% if 'Standby' in pullRequest.labels %}
                                 <span class="tag is-warning">Standby</span>
                             {% endif %}
+                            {% if 'WAIT' in pullRequest.labels %}
+                                <span class="tag is-danger">WAIT</span>
+                            {% endif %}
+
                             {{ pullRequest.getTitle }}
                             <a target="_blank" href="{{ pullRequest.getUrl }}"> <i class="fab fa-github"></i></a>
 
