@@ -308,13 +308,42 @@ class GitHubHandler
         return false;
     }
 
-    public function addJiraLinkToDescription(PullRequest $pullRequest, JiraIssue $jiraIssue)
+    public function addJiraLinkToDescription(PullRequest $pullRequest, ?JiraIssue $jiraIssue)
     {
         $pullRequestBody = $pullRequest->getBody();
-        $jiraIssueUrl    = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
+        $bodyPrefix = "> Cette _pull request_ a été ouverte sans ticket Jira associé 👎";
 
-        if (false === strpos($pullRequestBody, $jiraIssueUrl)) {
-            $this->updatePullRequestBody($pullRequest, $jiraIssueUrl . "\n\n" . $pullRequestBody);
+        if (null !== $jiraIssue) {
+            $bodyPrefix = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
+        }
+
+        if (false === strpos($pullRequestBody, $bodyPrefix)) {
+            $this->updatePullRequestBody($pullRequest, $bodyPrefix . "\n\n" . $pullRequestBody);
+        }
+    }
+
+    public function prettifyPullRequestTitle(PullRequest $pullRequest)
+    {
+        $title = $pullRequest->getTitle();
+
+        $regexPattern = '/^\[?%s\]?/i';
+        $betterPrTitle = null;
+
+        if ($pullRequest->hasLabel('Tech') && 0 === preg_match(sprintf($regexPattern, 'Tech'), $title)) {
+            $betterPrTitle = '[Tech] ' . $title;
+        } elseif ($pullRequest->hasLabel('Bug') && 0 === preg_match(sprintf($regexPattern, 'Fix'), $title)) {
+            $betterPrTitle = '[Fix] ' . $title;
+        }
+
+        if (null !== $betterPrTitle) {
+            $pullRequestData = $this->gitHubClient->pullRequests()->update(
+                getenv('GITHUB_REPOSITORY_OWNER'),
+                getenv('GITHUB_REPOSITORY_NAME'),
+                $pullRequest->getId(),
+                ['title' => $betterPrTitle]
+            );
+
+            return PullRequestFactory::fromArray($pullRequestData);
         }
     }
 
@@ -363,11 +392,13 @@ class GitHubHandler
         $jiraIssue = $this->getJiraIssueFromPullRequest($pullRequest);
         $this->handleReviewRequiredLabel($pullRequest, $jiraIssue);
 
+        $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
+
         if (null === $jiraIssue) {
+            $this->prettifyPullRequestTitle($pullRequest);
             return;
         }
 
-        $this->addJiraLinkToDescription($pullRequest, $jiraIssue);
 
         if (\in_array(
             $jiraIssue->fields->status->name,
