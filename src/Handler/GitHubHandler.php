@@ -331,7 +331,7 @@ class GitHubHandler
 
         if ($pullRequest->hasLabel('Tech') && 0 === preg_match(sprintf($regexPattern, 'Tech'), $title)) {
             $betterPrTitle = '[Tech] ' . $title;
-        } elseif ($pullRequest->hasLabel('Bug') && 0 === preg_match(sprintf($regexPattern, 'Fix'), $title)) {
+        } elseif ($pullRequest->hasLabel('bug') && 0 === preg_match(sprintf($regexPattern, 'Fix'), $title)) {
             $betterPrTitle = '[Fix] ' . $title;
         }
 
