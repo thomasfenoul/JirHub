@@ -326,13 +326,23 @@ class GitHubHandler
     {
         $title = $pullRequest->getTitle();
 
-        $regexPattern = '/^\[?%s\]?/i';
+        $regexPattern = '/^\[(?<prefix>.*)\]/i';
         $betterPrTitle = null;
 
-        if ($pullRequest->hasLabel('Tech') && 0 === preg_match(sprintf($regexPattern, 'Tech'), $title)) {
-            $betterPrTitle = '[Tech] ' . $title;
-        } elseif ($pullRequest->hasLabel('bug') && 0 === preg_match(sprintf($regexPattern, 'Fix'), $title)) {
-            $betterPrTitle = '[Fix] ' . $title;
+        $matches = [];
+        preg_match($regexPattern, $title, $matches);
+
+        $labels = [
+            'Tech' => 'Tech',
+            'bug' => 'Fix',
+        ];
+
+        foreach ($labels as $label => $prefix) {
+            if ($pullRequest->hasLabel($label) && empty($matches['prefix'])) {
+                $betterPrTitle = sprintf('[%s] %s', $prefix, $title);
+            } elseif (!$pullRequest->hasLabel($label) && $matches['prefix'] === $prefix) {
+                $betterPrTitle = str_replace(sprintf('[%s] ', $prefix), '', $title);
+            }
         }
 
         if (null !== $betterPrTitle) {
