@@ -25,6 +25,8 @@ class GitHubHandler
     const CHANGES_REQUESTED = 'CHANGES_REQUESTED';
     const APPROVED          = 'APPROVED';
 
+    const RELEASE_PR_TITLE_PREFIX = 'MEP';
+
     /** @var GitHubClient */
     private $gitHubClient;
 
@@ -311,7 +313,7 @@ class GitHubHandler
     public function addJiraLinkToDescription(PullRequest $pullRequest, ?JiraIssue $jiraIssue)
     {
         $pullRequestBody = $pullRequest->getBody();
-        $bodyPrefix = "> Cette _pull request_ a été ouverte sans ticket Jira associé 👎";
+        $bodyPrefix      = '> Cette _pull request_ a été ouverte sans ticket Jira associé 👎';
 
         if (null !== $jiraIssue) {
             $bodyPrefix = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
@@ -326,7 +328,7 @@ class GitHubHandler
     {
         $title = $pullRequest->getTitle();
 
-        $regexPattern = '/^\[(?<prefix>.*)\]/i';
+        $regexPattern  = '/^\[(?<prefix>.*)\]/i';
         $betterPrTitle = null;
 
         $matches = [];
@@ -334,7 +336,7 @@ class GitHubHandler
 
         $labels = [
             'Tech' => 'Tech',
-            'bug' => 'Fix',
+            'bug'  => 'Fix',
         ];
 
         foreach ($labels as $label => $prefix) {
@@ -395,7 +397,7 @@ class GitHubHandler
             }
         }
 
-        if (null === $pullRequest) {
+        if (null === $pullRequest || 0 === strpos($pullRequest->getTitle(), self::RELEASE_PR_TITLE_PREFIX)) {
             return;
         }
 
@@ -406,9 +408,9 @@ class GitHubHandler
 
         if (null === $jiraIssue) {
             $this->prettifyPullRequestTitle($pullRequest);
+
             return;
         }
-
 
         if (\in_array(
             $jiraIssue->fields->status->name,

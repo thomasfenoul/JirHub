@@ -17,9 +17,9 @@ class CommitRepository
 
     public function __construct(Client $client, string $repositoryOwner, string $repositoryName)
     {
-        $this->client = $client;
+        $this->client          = $client;
         $this->repositoryOwner = $repositoryOwner;
-        $this->repositoryName = $repositoryName;
+        $this->repositoryName  = $repositoryName;
     }
 
     public function getChangelog(string $base, string $head): array
