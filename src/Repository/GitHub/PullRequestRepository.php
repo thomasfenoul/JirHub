@@ -79,8 +79,7 @@ class PullRequestRepository
         }
 
         foreach ($pullRequests as $key => $pullRequest) {
-            if (
-                \array_key_exists(PullRequestSearchFilters::TITLE, $parameters)
+            if (\array_key_exists(PullRequestSearchFilters::TITLE, $parameters)
                 && false === strpos($pullRequest->getTitle(), $parameters[PullRequestSearchFilters::TITLE])
             ) {
                 unset($pullRequests[$key]);
@@ -88,8 +87,7 @@ class PullRequestRepository
                 continue;
             }
 
-            if (
-                \array_key_exists(PullRequestSearchFilters::LABELS, $parameters)
+            if (\array_key_exists(PullRequestSearchFilters::LABELS, $parameters)
                 && false === empty(array_diff($parameters[PullRequestSearchFilters::LABELS], $pullRequest->getLabels()))
             ) {
                 unset($pullRequests[$key]);
@@ -97,8 +95,7 @@ class PullRequestRepository
                 continue;
             }
 
-            if (
-                \array_key_exists(PullRequestSearchFilters::HEAD_REF, $parameters)
+            if (\array_key_exists(PullRequestSearchFilters::HEAD_REF, $parameters)
                 && false === strpos($pullRequest->getHeadRef(), $parameters[PullRequestSearchFilters::HEAD_REF])
             ) {
                 unset($pullRequests[$key]);
@@ -106,8 +103,7 @@ class PullRequestRepository
                 continue;
             }
 
-            if (
-                \array_key_exists(PullRequestSearchFilters::BASE_REF, $parameters)
+            if (\array_key_exists(PullRequestSearchFilters::BASE_REF, $parameters)
                 && false === strpos($pullRequest->getBaseRef(), $parameters[PullRequestSearchFilters::BASE_REF])
             ) {
                 unset($pullRequests[$key]);
@@ -137,9 +133,9 @@ class PullRequestRepository
                 $pullRequest->getTitle()
             );
         } catch (\Exception $e) {
-            $this->eventDispatcher->dispatch(PullRequestMergeFailureEvent::NAME, new PullRequestMergeFailureEvent($pullRequest, $e->getMessage()));
+            $this->eventDispatcher->dispatch(new PullRequestMergeFailureEvent($pullRequest, $e->getMessage()));
         }
 
-        $this->eventDispatcher->dispatch(PullRequestMergedEvent::NAME, new PullRequestMergedEvent($pullRequest));
+        $this->eventDispatcher->dispatch(new PullRequestMergedEvent($pullRequest));
     }
 }

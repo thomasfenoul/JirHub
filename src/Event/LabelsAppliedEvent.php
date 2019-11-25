@@ -3,12 +3,10 @@
 namespace App\Event;
 
 use App\Model\PullRequest;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class LabelsAppliedEvent extends Event
 {
-    const NAME = 'events.pull_requests.labels_applied';
-
     /** @var PullRequest $pullRequest */
     protected $pullRequest;
 

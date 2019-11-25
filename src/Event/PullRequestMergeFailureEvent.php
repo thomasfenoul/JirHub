@@ -3,12 +3,10 @@
 namespace App\Event;
 
 use App\Model\PullRequest;
-use Symfony\Component\EventDispatcher\Event;
+use Symfony\Contracts\EventDispatcher\Event;
 
 class PullRequestMergeFailureEvent extends Event
 {
-    const NAME = 'events.pull_requests.merge.failure';
-
     /** @var PullRequest */
     protected $pullRequest;
 

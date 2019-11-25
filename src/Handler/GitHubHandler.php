@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class GitHubHandler
 {
     const CHANGES_REQUESTED = 'CHANGES_REQUESTED';
-    const APPROVED          = 'APPROVED';
+    const APPROVED = 'APPROVED';
 
     const RELEASE_PR_TITLE_PREFIX = 'MEP';
 
@@ -57,13 +57,13 @@ class GitHubHandler
         EventDispatcherInterface $eventDispatcher,
         CacheItemPoolInterface $cache
     ) {
-        $this->gitHubClient                = $gitHubClient;
-        $this->pullRequestRepository       = $pullRequestRepository;
+        $this->gitHubClient = $gitHubClient;
+        $this->pullRequestRepository = $pullRequestRepository;
         $this->pullRequestReviewRepository = $pullRequestReviewRepository;
-        $this->pullRequestLabelRepository  = $pullRequestLabelRepository;
-        $this->jiraIssueRepository         = $jiraIssueRepository;
-        $this->eventDispatcher             = $eventDispatcher;
-        $this->cache                       = $cache;
+        $this->pullRequestLabelRepository = $pullRequestLabelRepository;
+        $this->jiraIssueRepository = $jiraIssueRepository;
+        $this->eventDispatcher = $eventDispatcher;
+        $this->cache = $cache;
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
@@ -94,7 +94,7 @@ class GitHubHandler
     public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
         $approveCount = 0;
-        $reviews      = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
+        $reviews = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
 
         /** @var PullRequestReview $review */
         foreach ($reviews as $review) {
@@ -187,7 +187,7 @@ class GitHubHandler
 
     public function removeReviewLabels(PullRequest $pullRequest)
     {
-        $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
+        $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
         $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
         $reviewLabels[] = getenv('GITHUB_FORCE_LABEL');
 
@@ -243,10 +243,7 @@ class GitHubHandler
             $this->jiraIssueRepository->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
         }
 
-        $this->eventDispatcher->dispatch(
-            LabelsAppliedEvent::NAME,
-            new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey)
-        );
+        $this->eventDispatcher->dispatch(new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey));
 
         return true;
     }
@@ -256,8 +253,7 @@ class GitHubHandler
      */
     public function handleReviewRequiredLabel(PullRequest $pullRequest, ?JiraIssue $jiraIssue = null)
     {
-        if (
-            $pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+        if ($pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
             && (
                 !$this->isPullRequestApproved($pullRequest)
                 || $this->isDeployed($pullRequest)
@@ -270,8 +266,7 @@ class GitHubHandler
             );
         }
 
-        if (
-            !$pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
+        if (!$pullRequest->hasLabel(getenv('GITHUB_REVIEW_REQUIRED_LABEL'))
             && $this->isPullRequestApproved($pullRequest)
             && !$this->isDeployed($pullRequest)
             && !$this->isValidated($pullRequest)
@@ -281,8 +276,7 @@ class GitHubHandler
                 getenv('GITHUB_REVIEW_REQUIRED_LABEL')
             );
 
-            if (
-                null !== $jiraIssue
+            if (null !== $jiraIssue
                 && $jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')
             ) {
                 $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
@@ -313,7 +307,7 @@ class GitHubHandler
     public function addJiraLinkToDescription(PullRequest $pullRequest, ?JiraIssue $jiraIssue)
     {
         $pullRequestBody = $pullRequest->getBody();
-        $bodyPrefix      = '> Cette _pull request_ a été ouverte sans ticket Jira associé 👎';
+        $bodyPrefix = '> Cette _pull request_ a été ouverte sans ticket Jira associé 👎';
 
         if (null !== $jiraIssue) {
             $bodyPrefix = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
@@ -328,7 +322,7 @@ class GitHubHandler
     {
         $title = $pullRequest->getTitle();
 
-        $regexPattern  = '/^\[(?<prefix>.*)\]/i';
+        $regexPattern = '/^\[(?<prefix>.*)\]/i';
         $betterPrTitle = null;
 
         $matches = [];
@@ -336,7 +330,7 @@ class GitHubHandler
 
         $labels = [
             'Tech' => 'Tech',
-            'bug'  => 'Fix',
+            'bug' => 'Fix',
         ];
 
         foreach ($labels as $label => $prefix) {

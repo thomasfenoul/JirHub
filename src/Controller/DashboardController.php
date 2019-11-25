@@ -3,10 +3,10 @@
 namespace App\Controller;
 
 use App\Dashboard\Handler\DashboardHandler;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
 
-class DashboardController extends Controller
+class DashboardController extends AbstractController
 {
     /** @var DashboardHandler */
     protected $handler;

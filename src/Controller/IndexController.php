@@ -6,13 +6,13 @@ use App\Handler\GitHubHandler;
 use App\Repository\GitHub\PullRequestRepository;
 use JiraRestApi\JiraException;
 use Psr\Cache\InvalidArgumentException;
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class IndexController extends Controller
+class IndexController extends AbstractController
 {
     /**
      * @Route("/check", name="check_deployability", methods={"GET"})
@@ -20,7 +20,7 @@ class IndexController extends Controller
     public function checkAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
-        $env    = $request->get('env');
+        $env = $request->get('env');
 
         return new JsonResponse(
             [
@@ -37,9 +37,9 @@ class IndexController extends Controller
     public function applyAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
-        $env    = $request->get('env');
+        $env = $request->get('env');
 
-        return new Response((int) $gitHubHandler->applyLabels($branch, $env));
+        return new Response((int)$gitHubHandler->applyLabels($branch, $env));
     }
 
     /**
@@ -47,9 +47,9 @@ class IndexController extends Controller
      */
     public function jiraWebhookAction(Request $request, PullRequestRepository $pullRequestRepository): Response
     {
-        $data   = json_decode($request->getContent(), true);
+        $data = json_decode($request->getContent(), true);
         $status = $data['issue']['fields']['status']['name'];
-        $key    = $data['issue']['key'];
+        $key = $data['issue']['key'];
 
         if ($status === getenv('JIRA_STATUS_DONE')) {
             $pullRequest = array_pop($pullRequestRepository->search(['head_ref' => $key]));
@@ -72,10 +72,8 @@ class IndexController extends Controller
      * @throws JiraException
      * @throws InvalidArgumentException
      */
-    public function githubWebhookAction(
-        Request $request,
-        GitHubHandler $gitHubHandler
-    ): Response {
+    public function githubWebhookAction(Request $request, GitHubHandler $gitHubHandler): Response
+    {
         $data = json_decode($request->getContent(), true);
         $gitHubHandler->synchronize($data);
 

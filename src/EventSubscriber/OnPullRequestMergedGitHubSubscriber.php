@@ -24,7 +24,7 @@ class OnPullRequestMergedGitHubSubscriber implements EventSubscriberInterface
     public static function getSubscribedEvents()
     {
         return [
-            PullRequestMergedEvent::NAME => 'updatePullRequest',
+            PullRequestMergedEvent::class => 'updatePullRequest',
         ];
     }
 
