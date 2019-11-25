@@ -1,7 +1,6 @@
 FROM php:fpm-alpine
 
 RUN apk update && apk add --no-cache \
-    $PHPIZE_DEPS \
     zlib-dev \
     libzip-dev \
     icu-dev
