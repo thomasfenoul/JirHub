@@ -417,7 +417,10 @@ class GitHubHandler
         if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
             if (false === $this->isPullRequestApproved($pullRequest)) {
                 if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
-                    $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
+                    try {
+                        $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
+                    } catch (\Throwable $t) {
+                    }
                 }
             }
         }
