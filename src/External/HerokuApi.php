@@ -2,9 +2,9 @@
 
 namespace App\External;
 
+use GuzzleHttp\Client;
 use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\HttpFoundation\Request;
-use GuzzleHttp\Client;
 
 class HerokuApi
 {

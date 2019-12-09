@@ -4,14 +4,14 @@ namespace App\Handler;
 
 use App\Dashboard\Handler\DashboardHandler;
 use App\Event\LabelsAppliedEvent;
-use App\Factory\PullRequestFactory;
 use App\Helper\JiraHelper;
 use App\Model\PullRequest;
 use App\Model\PullRequestReview;
+use App\Repository\GitHub\Constant\PullRequestSearchFilters;
+use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
 use App\Repository\GitHub\PullRequestLabelRepository;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestReviewRepository;
-use App\Repository\GitHub\PullRequestSearchFilters;
 use App\Repository\Jira\JiraIssueRepository;
 use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class GitHubHandler
 {
     const CHANGES_REQUESTED = 'CHANGES_REQUESTED';
-    const APPROVED = 'APPROVED';
+    const APPROVED          = 'APPROVED';
 
     const RELEASE_PR_TITLE_PREFIX = 'MEP';
 
@@ -57,13 +57,13 @@ class GitHubHandler
         EventDispatcherInterface $eventDispatcher,
         CacheItemPoolInterface $cache
     ) {
-        $this->gitHubClient = $gitHubClient;
-        $this->pullRequestRepository = $pullRequestRepository;
+        $this->gitHubClient                = $gitHubClient;
+        $this->pullRequestRepository       = $pullRequestRepository;
         $this->pullRequestReviewRepository = $pullRequestReviewRepository;
-        $this->pullRequestLabelRepository = $pullRequestLabelRepository;
-        $this->jiraIssueRepository = $jiraIssueRepository;
-        $this->eventDispatcher = $eventDispatcher;
-        $this->cache = $cache;
+        $this->pullRequestLabelRepository  = $pullRequestLabelRepository;
+        $this->jiraIssueRepository         = $jiraIssueRepository;
+        $this->eventDispatcher             = $eventDispatcher;
+        $this->cache                       = $cache;
     }
 
     public function getOpenPullRequestFromHeadBranch(string $headBranchName)
@@ -94,7 +94,7 @@ class GitHubHandler
     public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
         $approveCount = 0;
-        $reviews = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
+        $reviews      = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
 
         /** @var PullRequestReview $review */
         foreach ($reviews as $review) {
@@ -187,7 +187,7 @@ class GitHubHandler
 
     public function removeReviewLabels(PullRequest $pullRequest)
     {
-        $reviewLabels = explode(',', getenv('GITHUB_REVIEW_LABELS'));
+        $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
         $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
         $reviewLabels[] = getenv('GITHUB_FORCE_LABEL');
 
@@ -307,14 +307,17 @@ class GitHubHandler
     public function addJiraLinkToDescription(PullRequest $pullRequest, ?JiraIssue $jiraIssue)
     {
         $pullRequestBody = $pullRequest->getBody();
-        $bodyPrefix = '> Cette _pull request_ a été ouverte sans ticket Jira associé 👎';
+        $bodyPrefix      = '> Cette _pull request_ a été ouverte sans ticket Jira associé 👎';
 
         if (null !== $jiraIssue) {
             $bodyPrefix = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
         }
 
         if (false === strpos($pullRequestBody, $bodyPrefix)) {
-            $this->updatePullRequestBody($pullRequest, $bodyPrefix . "\n\n" . $pullRequestBody);
+            $this->pullRequestRepository->update(
+                $pullRequest,
+                [PullRequestUpdatableFields::BODY => $bodyPrefix . "\n\n" . $pullRequestBody]
+            );
         }
     }
 
@@ -322,7 +325,7 @@ class GitHubHandler
     {
         $title = $pullRequest->getTitle();
 
-        $regexPattern = '/^\[(?<prefix>.*)\]/i';
+        $regexPattern  = '/^\[(?<prefix>.*)\]/i';
         $betterPrTitle = null;
 
         $matches = [];
@@ -330,7 +333,7 @@ class GitHubHandler
 
         $labels = [
             'Tech' => 'Tech',
-            'bug' => 'Fix',
+            'bug'  => 'Fix',
         ];
 
         foreach ($labels as $label => $prefix) {
@@ -342,27 +345,11 @@ class GitHubHandler
         }
 
         if (null !== $betterPrTitle) {
-            $pullRequestData = $this->gitHubClient->pullRequests()->update(
-                getenv('GITHUB_REPOSITORY_OWNER'),
-                getenv('GITHUB_REPOSITORY_NAME'),
-                $pullRequest->getId(),
-                ['title' => $betterPrTitle]
+            return $this->pullRequestRepository->update(
+                $pullRequest,
+                [PullRequestUpdatableFields::TITLE => $betterPrTitle]
             );
-
-            return PullRequestFactory::fromArray($pullRequestData);
         }
-    }
-
-    public function updatePullRequestBody(PullRequest $pullRequest, string $body)
-    {
-        $pullRequestData = $this->gitHubClient->pullRequests()->update(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
-            $pullRequest->getId(),
-            ['body' => $body]
-        );
-
-        return PullRequestFactory::fromArray($pullRequestData);
     }
 
     /**

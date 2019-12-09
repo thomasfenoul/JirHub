@@ -20,7 +20,7 @@ class IndexController extends AbstractController
     public function checkAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
-        $env = $request->get('env');
+        $env    = $request->get('env');
 
         return new JsonResponse(
             [
@@ -37,9 +37,9 @@ class IndexController extends AbstractController
     public function applyAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
-        $env = $request->get('env');
+        $env    = $request->get('env');
 
-        return new Response((int)$gitHubHandler->applyLabels($branch, $env));
+        return new Response((int) $gitHubHandler->applyLabels($branch, $env));
     }
 
     /**
@@ -47,9 +47,9 @@ class IndexController extends AbstractController
      */
     public function jiraWebhookAction(Request $request, PullRequestRepository $pullRequestRepository): Response
     {
-        $data = json_decode($request->getContent(), true);
+        $data   = json_decode($request->getContent(), true);
         $status = $data['issue']['fields']['status']['name'];
-        $key = $data['issue']['key'];
+        $key    = $data['issue']['key'];
 
         if ($status === getenv('JIRA_STATUS_DONE')) {
             $pullRequest = array_pop($pullRequestRepository->search(['head_ref' => $key]));

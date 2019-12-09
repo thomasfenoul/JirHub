@@ -6,6 +6,8 @@ use App\Event\PullRequestMergedEvent;
 use App\Event\PullRequestMergeFailureEvent;
 use App\Factory\PullRequestFactory;
 use App\Model\PullRequest;
+use App\Repository\GitHub\Constant\PullRequestSearchFilters;
+use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
 use Github\Client;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -115,9 +117,24 @@ class PullRequestRepository
         return $pullRequests;
     }
 
-    public function update(PullRequest $pullRequest): void
+    public function update(PullRequest $pullRequest, array $data): PullRequest
     {
-        return;
+        $updateData = array_filter(
+            $data,
+            function ($key) {
+                return true === \in_array($key, PullRequestUpdatableFields::getConstants());
+            },
+            ARRAY_FILTER_USE_KEY
+        );
+
+        $pullRequestData = $this->client->pullRequests()->update(
+            getenv('GITHUB_REPOSITORY_OWNER'),
+            getenv('GITHUB_REPOSITORY_NAME'),
+            $pullRequest->getId(),
+            $updateData
+        );
+
+        return PullRequestFactory::fromArray($pullRequestData);
     }
 
     public function merge(PullRequest $pullRequest, $mergeMethod = 'squash'): void

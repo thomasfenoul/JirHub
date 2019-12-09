@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Repository\GitHub;
+namespace App\Repository\GitHub\Constant;
 
 class PullRequestSearchFilters
 {

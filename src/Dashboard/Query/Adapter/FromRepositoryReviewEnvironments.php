@@ -4,8 +4,8 @@ namespace App\Dashboard\Query\Adapter;
 
 use App\Dashboard\Query\ReviewEnvironments;
 use App\Model\ReviewEnvironment;
+use App\Repository\GitHub\Constant\PullRequestSearchFilters;
 use App\Repository\GitHub\PullRequestRepository;
-use App\Repository\GitHub\PullRequestSearchFilters;
 
 class FromRepositoryReviewEnvironments implements ReviewEnvironments
 {

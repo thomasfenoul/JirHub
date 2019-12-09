@@ -3,8 +3,8 @@
 namespace App\Dashboard\Query\Adapter;
 
 use App\Dashboard\Query\PullRequestsToDeploy;
+use App\Repository\GitHub\Constant\PullRequestSearchFilters;
 use App\Repository\GitHub\PullRequestRepository;
-use App\Repository\GitHub\PullRequestSearchFilters;
 
 class FromRepositoryPullRequestsToDeploy implements PullRequestsToDeploy
 {
