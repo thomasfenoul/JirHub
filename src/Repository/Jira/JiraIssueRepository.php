@@ -13,12 +13,9 @@ class JiraIssueRepository
     /** @var IssueService */
     private $issueService;
 
-    /**
-     * @throws JiraException
-     */
-    public function __construct()
+    public function __construct(IssueService $issueService)
     {
-        $this->issueService = new IssueService();
+        $this->issueService = $issueService;
     }
 
     /**
