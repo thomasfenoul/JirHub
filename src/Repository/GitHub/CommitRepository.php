@@ -2,11 +2,11 @@
 
 namespace App\Repository\GitHub;
 
-use Github\Client;
+use App\Client\GitHubClient;
 
 class CommitRepository
 {
-    /** @var Client */
+    /** @var GitHubClient */
     private $client;
 
     /** @var string */
@@ -15,7 +15,7 @@ class CommitRepository
     /** @var string */
     private $repositoryName;
 
-    public function __construct(Client $client, string $repositoryOwner, string $repositoryName)
+    public function __construct(GitHubClient $client, string $repositoryOwner, string $repositoryName)
     {
         $this->client          = $client;
         $this->repositoryOwner = $repositoryOwner;
@@ -24,7 +24,7 @@ class CommitRepository
 
     public function getChangelog(string $base, string $head): array
     {
-        return $this->client->repo()->commits()->compare(
+        return $this->client->commits()->compare(
             $this->repositoryOwner,
             $this->repositoryName,
             $base,

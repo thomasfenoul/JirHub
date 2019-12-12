@@ -2,6 +2,7 @@
 
 namespace App\Handler;
 
+use App\Client\GitHubClient;
 use App\Dashboard\Handler\DashboardHandler;
 use App\Event\LabelsAppliedEvent;
 use App\Helper\JiraHelper;
@@ -13,7 +14,6 @@ use App\Repository\GitHub\PullRequestLabelRepository;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestReviewRepository;
 use App\Repository\Jira\JiraIssueRepository;
-use Github\Client as GitHubClient;
 use JiraRestApi\Issue\Issue as JiraIssue;
 use JiraRestApi\JiraException;
 use Psr\Cache\CacheItemPoolInterface;

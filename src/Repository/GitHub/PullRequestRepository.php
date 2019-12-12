@@ -2,18 +2,18 @@
 
 namespace App\Repository\GitHub;
 
+use App\Client\GitHubClient;
 use App\Event\PullRequestMergedEvent;
 use App\Event\PullRequestMergeFailureEvent;
 use App\Factory\PullRequestFactory;
 use App\Model\PullRequest;
 use App\Repository\GitHub\Constant\PullRequestSearchFilters;
 use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
-use Github\Client;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class PullRequestRepository
 {
-    /** @var Client */
+    /** @var GitHubClient */
     private $client;
 
     /** @var string */
@@ -26,7 +26,7 @@ class PullRequestRepository
     private $eventDispatcher;
 
     public function __construct(
-        Client $client,
+        GitHubClient $client,
         string $repositoryOwner,
         string $repositoryName,
         EventDispatcherInterface $eventDispatcher
@@ -128,8 +128,8 @@ class PullRequestRepository
         );
 
         $pullRequestData = $this->client->pullRequests()->update(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
+            $this->repositoryOwner,
+            $this->repositoryName,
             $pullRequest->getId(),
             $updateData
         );

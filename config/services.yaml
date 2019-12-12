@@ -41,8 +41,7 @@ services:
     Github\HttpClient\Builder:
     Lcobucci\JWT\Builder:
 
-    Github\Client:
-        factory:   ['@App\Factory\GitHubClientFactory', 'createGitHubClient']
+    App\Client\GitHubClient:
         arguments:
             $gitHubAppId: '%env(GITHUB_APP_ID)%'
             $gitHubPrivateRsaKey: '%env(GITHUB_PRIVATE_RSA_KEY)%'

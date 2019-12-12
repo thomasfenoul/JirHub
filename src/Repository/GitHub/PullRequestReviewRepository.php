@@ -2,13 +2,13 @@
 
 namespace App\Repository\GitHub;
 
+use App\Client\GitHubClient;
 use App\Factory\PullRequestReviewFactory;
 use App\Model\PullRequest;
-use Github\Client;
 
 class PullRequestReviewRepository
 {
-    /** @var Client */
+    /** @var GitHubClient */
     private $client;
 
     /** @var string */
@@ -18,7 +18,7 @@ class PullRequestReviewRepository
     private $repositoryName;
 
     public function __construct(
-        Client $client,
+        GitHubClient $client,
         string $repositoryOwner,
         string $repositoryName
     ) {
@@ -38,9 +38,9 @@ class PullRequestReviewRepository
             $apiParameters['per_page'] = $parameters['per_page'];
         }
 
-        $reviewsData = $this->client->pullRequests()->reviews()->all(
-            getenv('GITHUB_REPOSITORY_OWNER'),
-            getenv('GITHUB_REPOSITORY_NAME'),
+        $reviewsData = $this->client->reviews()->all(
+            $this->repositoryOwner,
+            $this->repositoryName,
             $pullRequest->getId(),
             $apiParameters
         );
