@@ -94,10 +94,13 @@ class GitHubHandler
     public function isPullRequestApproved(PullRequest $pullRequest): bool
     {
         $approveCount = 0;
-        $reviews      = array_reverse($this->pullRequestReviewRepository->search($pullRequest));
+
+        if (null === $pullRequest->getReviews()) {
+            $pullRequest->setReviews(array_reverse($this->pullRequestReviewRepository->search($pullRequest)));
+        }
 
         /** @var PullRequestReview $review */
-        foreach ($reviews as $review) {
+        foreach ($pullRequest->getReviews() as $review) {
             if (self::CHANGES_REQUESTED === $review->getState()) {
                 return false;
             }
@@ -189,7 +192,6 @@ class GitHubHandler
     {
         $reviewLabels   = explode(',', getenv('GITHUB_REVIEW_LABELS'));
         $reviewLabels[] = getenv('GITHUB_REVIEW_REQUIRED_LABEL');
-        $reviewLabels[] = getenv('GITHUB_FORCE_LABEL');
 
         foreach ($reviewLabels as $reviewLabel) {
             if ($pullRequest->hasLabel($reviewLabel)) {

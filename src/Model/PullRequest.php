@@ -36,6 +36,9 @@ class PullRequest
     /** @var JiraIssue */
     private $jiraIssue;
 
+    /** @var PullRequestReview[]|null */
+    private $reviews;
+
     public function __construct(
         int $id,
         string $title,
@@ -138,5 +141,20 @@ class PullRequest
     public function getJiraIssue(): ?JiraIssue
     {
         return $this->jiraIssue;
+    }
+
+    /**
+     * @return PullRequestReview[]
+     */
+    public function getReviews(): ?array
+    {
+        return $this->reviews;
+    }
+
+    public function setReviews(?array $reviews): self
+    {
+        $this->reviews = $reviews;
+
+        return $this;
     }
 }
