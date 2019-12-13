@@ -14,3 +14,9 @@ clear-cache:
 
 sh:
 	docker exec -it jirhub_php sh
+
+up:
+	docker-compose up -d
+
+build:
+	docker-compose build

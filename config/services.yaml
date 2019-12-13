@@ -48,6 +48,12 @@ services:
             $gitHubPrivateRsaKey: '%env(GITHUB_PRIVATE_RSA_KEY)%'
             $gitHubAppInstallationId: '%env(GITHUB_APP_INSTALLATION_ID)%'
 
+    App\Client\JiraClient:
+        arguments:
+            $host: '%env(JIRA_HOST)%'
+            $username: '%env(JIRA_USER)%'
+            $pass: '%env(JIRA_PASS)%'
+
     JoliCode\Slack\Api\Client:
         factory: ['JoliCode\Slack\ClientFactory', create]
         arguments: ['%env(SLACK_TOKEN)%']
