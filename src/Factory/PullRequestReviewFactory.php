@@ -6,11 +6,19 @@ use App\Model\PullRequestReview;
 
 class PullRequestReviewFactory
 {
-    public static function fromArray(array $pullRequestReviewData): PullRequestReview
+    /** @var GitHubUserFactory */
+    private $githubUserFactory;
+
+    public function __construct(GitHubUserFactory $gitHubUserFactory)
+    {
+        $this->githubUserFactory = $gitHubUserFactory;
+    }
+
+    public function create(array $pullRequestReviewData): PullRequestReview
     {
         return new PullRequestReview(
             $pullRequestReviewData['id'],
-            GitHubUserFactory::fromArray($pullRequestReviewData['user']),
+            $this->githubUserFactory->create($pullRequestReviewData['user']),
             $pullRequestReviewData['body'],
             $pullRequestReviewData['state'],
             $pullRequestReviewData['html_url']

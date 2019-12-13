@@ -6,7 +6,15 @@ use App\Model\PullRequest;
 
 class PullRequestFactory
 {
-    public static function fromArray(array $pullRequestData): PullRequest
+    /** @var GitHubUserFactory */
+    private $githubUserFactory;
+
+    public function __construct(GitHubUserFactory $gitHubUserFactory)
+    {
+        $this->githubUserFactory = $gitHubUserFactory;
+    }
+
+    public function create(array $pullRequestData): PullRequest
     {
         return new PullRequest(
             $pullRequestData['number'],
@@ -16,7 +24,7 @@ class PullRequestFactory
             $pullRequestData['base']['ref'],
             $pullRequestData['html_url'],
             $pullRequestData['head']['sha'],
-            GitHubUserFactory::fromArray($pullRequestData['user']),
+            $this->githubUserFactory->create($pullRequestData['user']),
             array_column($pullRequestData['labels'], 'name')
         );
     }

@@ -13,6 +13,12 @@ class JiraIssue
     /** @var UriInterface */
     private $uri;
 
+    /** @var JiraIssueType */
+    private $type;
+
+    /** @var JiraIssueStatus */
+    private $status;
+
     public function __construct(string $key)
     {
         $this->key = $key;

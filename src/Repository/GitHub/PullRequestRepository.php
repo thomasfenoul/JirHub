@@ -22,6 +22,9 @@ class PullRequestRepository
     /** @var string */
     private $repositoryName;
 
+    /** @var PullRequestFactory */
+    private $pullRequestFactory;
+
     /** @var EventDispatcherInterface */
     private $eventDispatcher;
 
@@ -29,12 +32,14 @@ class PullRequestRepository
         GitHubClient $client,
         string $repositoryOwner,
         string $repositoryName,
+        PullRequestFactory $pullRequestFactory,
         EventDispatcherInterface $eventDispatcher
     ) {
-        $this->client          = $client;
-        $this->repositoryOwner = $repositoryOwner;
-        $this->repositoryName  = $repositoryName;
-        $this->eventDispatcher = $eventDispatcher;
+        $this->client             = $client;
+        $this->repositoryOwner    = $repositoryOwner;
+        $this->repositoryName     = $repositoryName;
+        $this->pullRequestFactory = $pullRequestFactory;
+        $this->eventDispatcher    = $eventDispatcher;
     }
 
     public function fetch($id): PullRequest
@@ -45,7 +50,7 @@ class PullRequestRepository
             $id
         );
 
-        return PullRequestFactory::fromArray($pullRequestData);
+        return $this->pullRequestFactory->create($pullRequestData);
     }
 
     /**
@@ -77,7 +82,7 @@ class PullRequestRepository
         $pullRequests = [];
 
         foreach ($pullRequestsData as $pullRequestData) {
-            $pullRequests[] = PullRequestFactory::fromArray($pullRequestData);
+            $pullRequests[] = $this->pullRequestFactory->create($pullRequestData);
         }
 
         foreach ($pullRequests as $key => $pullRequest) {
@@ -134,7 +139,7 @@ class PullRequestRepository
             $updateData
         );
 
-        return PullRequestFactory::fromArray($pullRequestData);
+        return $this->pullRequestFactory->create($pullRequestData);
     }
 
     public function merge(PullRequest $pullRequest, $mergeMethod = 'squash'): void

@@ -17,14 +17,19 @@ class PullRequestReviewRepository
     /** @var string */
     private $repositoryName;
 
+    /** @var PullRequestReviewFactory */
+    private $pullRequestReviewFactory;
+
     public function __construct(
         GitHubClient $client,
         string $repositoryOwner,
-        string $repositoryName
+        string $repositoryName,
+        PullRequestReviewFactory $pullRequestReviewFactory
     ) {
-        $this->client          = $client;
-        $this->repositoryOwner = $repositoryOwner;
-        $this->repositoryName  = $repositoryName;
+        $this->client                   = $client;
+        $this->repositoryOwner          = $repositoryOwner;
+        $this->repositoryName           = $repositoryName;
+        $this->pullRequestReviewFactory = $pullRequestReviewFactory;
     }
 
     public function search(PullRequest $pullRequest, array $parameters = []): array
@@ -46,7 +51,7 @@ class PullRequestReviewRepository
         );
 
         foreach ($reviewsData as $reviewData) {
-            $reviews[] = PullRequestReviewFactory::fromArray($reviewData);
+            $reviews[] = $this->pullRequestReviewFactory->create($reviewData);
         }
 
         return $reviews;

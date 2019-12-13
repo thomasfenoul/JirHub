@@ -6,7 +6,7 @@ use App\Model\GitHubUser;
 
 class GitHubUserFactory
 {
-    public static function fromArray(array $userData): GitHubUser
+    public function create(array $userData): GitHubUser
     {
         return new GitHubUser(
             $userData['id'],
