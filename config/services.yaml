@@ -54,6 +54,10 @@ services:
             $username: '%env(JIRA_USER)%'
             $pass: '%env(JIRA_PASS)%'
 
+    App\Factory\JiraIssueFactory:
+        arguments:
+            $host: '%env(JIRA_HOST)%'
+
     JoliCode\Slack\Api\Client:
         factory: ['JoliCode\Slack\ClientFactory', create]
         arguments: ['%env(SLACK_TOKEN)%']

@@ -4,15 +4,25 @@ namespace App\Model;
 
 class JirHubTask
 {
-    /** @var JiraIssue */
-    private $jiraIssue;
-
     /** @var PullRequest */
     private $githubPullRequest;
 
-    public function __construct(JiraIssue $jiraIssue, PullRequest $githubPullRequest)
+    /** @var JiraIssue|null */
+    private $jiraIssue;
+
+    public function __construct(PullRequest $githubPullRequest, ?JiraIssue $jiraIssue = null)
     {
-        $this->jiraIssue         = $jiraIssue;
         $this->githubPullRequest = $githubPullRequest;
+        $this->jiraIssue         = $jiraIssue;
+    }
+
+    public function getGithubPullRequest(): PullRequest
+    {
+        return $this->githubPullRequest;
+    }
+
+    public function getJiraIssue(): ?JiraIssue
+    {
+        return $this->jiraIssue;
     }
 }

@@ -13,7 +13,7 @@
             <section>
                 <div id="environments" class="tile is-ancestor">
                     {% for env in review_environments %}
-                        {% set free = env.pullRequest is null %}
+                        {% set free = env.jirHubTask is null %}
 
                         <div class="tile is-parent">
                             <div class="tile is-child env {{ env.name }} {% if free %} free {% endif %}">
@@ -43,21 +43,21 @@
                                         </div>
                                     </div>
 
-                                    {% if env.pullRequest.getJiraIssue is not null %}
-                                        <span class="ta-number">{{ env.pullRequest.getJiraIssue.getKey|upper }}</span>
+                                    {% if env.jirHubTask.getJiraIssue is not null %}
+                                        <span class="ta-number">{{ env.jirHubTask.getJiraIssue.getKey|upper }}</span>
                                     {% else %}
                                         <span class="ta-number">Unknown Jira Ticket</span>
                                     {% endif %}
                                     <span class="ta-title">{{ env.pullRequestTitle }}</span>
 
                                     <div class="links">
-                                        {% if env.pullRequest.getJiraIssue is not null %}
+                                        {% if env.jirHubTask.getJiraIssue is not null %}
                                             <span class="jira">
-                                                <a target="_blank" href="{{ env.pullRequest.getJiraIssue.getUri }}"><i class="fab fa-jira"></i></a>
+                                                <a target="_blank" href="{{ env.jirHubTask.getJiraIssue.getUri }}"><i class="fab fa-jira"></i></a>
                                             </span>
                                         {% endif %}
                                         <span class="github">
-                                            <a target="_blank" href="{{ env.pullRequest.getUrl }}"><i class="fab fa-github"></i></a>
+                                            <a target="_blank" href="{{ env.jirHubTask.githubPullRequest.getUrl }}"><i class="fab fa-github"></i></a>
                                         </span>
                                     </div>
                                 {% endif %}

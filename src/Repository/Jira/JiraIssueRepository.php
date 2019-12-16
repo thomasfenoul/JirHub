@@ -2,40 +2,63 @@
 
 namespace App\Repository\Jira;
 
-use JiraRestApi\Issue\Issue;
-use JiraRestApi\Issue\IssueService;
-use JiraRestApi\Issue\Transition;
-use JiraRestApi\JiraException;
-use JsonMapper_Exception;
+use App\Client\JiraClient;
+use App\Exception\UnexpectedContentType;
+use App\Factory\JiraIssueFactory;
+use App\Model\JiraIssue;
+use App\Model\JiraTransition;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class JiraIssueRepository
 {
-    /** @var IssueService */
-    private $issueService;
+    private const ROUTE_GET_ISSUE       = '/issue/%s';
+    private const ROUTE_POST_TRANSITION = '/issue/%s/transitions';
 
-    public function __construct(IssueService $issueService)
+    /** @var JiraClient */
+    private $jiraClient;
+
+    /** @var JiraIssueFactory */
+    private $jiraIssueFactory;
+
+    public function __construct(JiraClient $jiraClient, JiraIssueFactory $jiraIssueFactory)
     {
-        $this->issueService = $issueService;
+        $this->jiraClient       = $jiraClient;
+        $this->jiraIssueFactory = $jiraIssueFactory;
     }
 
     /**
-     * @throws JiraException
-     * @throws JsonMapper_Exception
+     * @throws UnexpectedContentType
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
-    public function getIssue(string $issueKey): Issue
+    public function getIssue(string $issueKey): JiraIssue
     {
-        return $this->issueService->get($issueKey);
+        $issueData = $this->jiraClient->get(
+            sprintf(self::ROUTE_GET_ISSUE, $issueKey),
+            ['expand' => 'transitions']
+        );
+
+        return $this->jiraIssueFactory->create($issueData);
     }
 
     /**
-     * @throws JiraException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws UnexpectedContentType
      */
-    public function transitionIssueTo(string $issueKey, int $transitionId): void
+    public function transitionIssueTo(string $issueKey, JiraTransition $jiraTransition): void
     {
-        $transition = new Transition();
-        $transition->setTransitionId($transitionId);
-        $transition->setCommentBody('JirHub performed a transition.');
-
-        $this->issueService->transition($issueKey, $transition);
+        $this->jiraClient->post(
+            sprintf(self::ROUTE_POST_TRANSITION, $issueKey),
+            [],
+            json_encode($jiraTransition->jsonSerialize())
+        );
     }
 }

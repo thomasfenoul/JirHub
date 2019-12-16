@@ -6,15 +6,22 @@ use App\Dashboard\Query\ReviewEnvironments;
 use App\Model\ReviewEnvironment;
 use App\Repository\GitHub\Constant\PullRequestSearchFilters;
 use App\Repository\GitHub\PullRequestRepository;
+use App\Repository\JirHubTaskRepository;
 
 class FromRepositoryReviewEnvironments implements ReviewEnvironments
 {
     /** @var PullRequestRepository */
-    protected $pullRequestRepository;
+    private $pullRequestRepository;
 
-    public function __construct(PullRequestRepository $pullRequestRepository)
-    {
+    /** @var JirHubTaskRepository */
+    private $jirHubTaskRepository;
+
+    public function __construct(
+        PullRequestRepository $pullRequestRepository,
+        JirHubTaskRepository $jirHubTaskRepository
+    ) {
         $this->pullRequestRepository = $pullRequestRepository;
+        $this->jirHubTaskRepository  = $jirHubTaskRepository;
     }
 
     public function fetch(): array
@@ -33,7 +40,11 @@ class FromRepositoryReviewEnvironments implements ReviewEnvironments
             );
 
             if (!empty($pullRequestsOnEnvironment)) {
-                $environment->setPullRequest(array_pop($pullRequestsOnEnvironment));
+                $jirHubTask = $this->jirHubTaskRepository->getJirHubTaskFromPullRequest(
+                    array_pop($pullRequestsOnEnvironment)
+                );
+
+                $environment->setJirHubTask($jirHubTask);
             }
         }
 

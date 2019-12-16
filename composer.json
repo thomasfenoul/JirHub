@@ -13,7 +13,6 @@
         "jolicode/slack-php-api": "^1.0",
         "knplabs/github-api": "^2.10",
         "lcobucci/jwt": "^3.3",
-        "lesstif/php-jira-rest-client": "^1.33",
         "nyholm/psr7": "^1.2",
         "php-http/curl-client": "^1.7",
         "php-http/guzzle6-adapter": "*",

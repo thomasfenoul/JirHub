@@ -5,7 +5,10 @@ namespace App\Handler;
 use App\Client\GitHubClient;
 use App\Dashboard\Handler\DashboardHandler;
 use App\Event\LabelsAppliedEvent;
+use App\Exception\UnexpectedContentType;
 use App\Helper\JiraHelper;
+use App\Model\JiraIssue;
+use App\Model\JiraTransition;
 use App\Model\PullRequest;
 use App\Model\PullRequestReview;
 use App\Repository\GitHub\Constant\PullRequestSearchFilters;
@@ -14,11 +17,13 @@ use App\Repository\GitHub\PullRequestLabelRepository;
 use App\Repository\GitHub\PullRequestRepository;
 use App\Repository\GitHub\PullRequestReviewRepository;
 use App\Repository\Jira\JiraIssueRepository;
-use JiraRestApi\Issue\Issue as JiraIssue;
-use JiraRestApi\JiraException;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class GitHubHandler
 {
@@ -66,7 +71,7 @@ class GitHubHandler
         $this->cache                       = $cache;
     }
 
-    public function getOpenPullRequestFromHeadBranch(string $headBranchName)
+    public function getOpenPullRequestFromHeadBranch(string $headBranchName): ?PullRequest
     {
         $pullRequests = $this->pullRequestRepository->search(
             [PullRequestSearchFilters::HEAD_REF => $headBranchName]
@@ -86,7 +91,7 @@ class GitHubHandler
 
         try {
             return $this->jiraIssueRepository->getIssue($jiraIssueKey);
-        } catch (\Exception $e) {
+        } catch (\Throwable $t) {
             return null;
         }
     }
@@ -222,7 +227,11 @@ class GitHubHandler
     }
 
     /**
-     * @throws JiraException
+     * @throws UnexpectedContentType
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function applyLabels(string $headBranchName, string $reviewBranchName): bool
     {
@@ -242,7 +251,13 @@ class GitHubHandler
             ?? JiraHelper::extractIssueKeyFromString($pullRequest->getTitle());
 
         if (null !== $jiraIssueKey) {
-            $this->jiraIssueRepository->transitionIssueTo($jiraIssueKey, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
+            $this->jiraIssueRepository->transitionIssueTo(
+                $jiraIssueKey,
+                new JiraTransition(
+                    getenv('JIRA_TRANSITION_ID_TO_VALIDATE'),
+                    'JirHub performed a transition'
+                )
+            );
         }
 
         $this->eventDispatcher->dispatch(new LabelsAppliedEvent($pullRequest, $reviewBranchName, $jiraIssueKey));
@@ -251,7 +266,11 @@ class GitHubHandler
     }
 
     /**
-     * @throws JiraException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws UnexpectedContentType
      */
     public function handleReviewRequiredLabel(PullRequest $pullRequest, ?JiraIssue $jiraIssue = null)
     {
@@ -279,15 +298,25 @@ class GitHubHandler
             );
 
             if (null !== $jiraIssue
-                && $jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_VALIDATE')
+                && $jiraIssue->getStatus()->getName() !== getenv('JIRA_STATUS_TO_VALIDATE')
             ) {
-                $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_VALIDATE'));
+                $this->jiraIssueRepository->transitionIssueTo(
+                    $jiraIssue->getKey(),
+                    new JiraTransition(
+                        getenv('JIRA_TRANSITION_ID_TO_VALIDATE'),
+                        'JirHub performed a transition'
+                    )
+                );
             }
         }
     }
 
     /**
-     * @throws JiraException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws UnexpectedContentType
      */
     public function handleInProgressPullRequest(PullRequest $pullRequest, JiraIssue $jiraIssue)
     {
@@ -295,8 +324,14 @@ class GitHubHandler
 
         foreach ($labels as $label) {
             if ($pullRequest->hasLabel($label)) {
-                if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_IN_PROGRESS')) {
-                    $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_IN_PROGRESS'));
+                if ($jiraIssue->getStatus()->getName() !== getenv('JIRA_STATUS_IN_PROGRESS')) {
+                    $this->jiraIssueRepository->transitionIssueTo(
+                        $jiraIssue->getKey(),
+                        new JiraTransition(
+                            getenv('JIRA_TRANSITION_ID_IN_PROGRESS'),
+                            'JirHub performed a transition'
+                        )
+                    );
                 }
 
                 return true;
@@ -312,7 +347,7 @@ class GitHubHandler
         $bodyPrefix      = '> Cette _pull request_ a été ouverte sans ticket Jira associé 👎';
 
         if (null !== $jiraIssue) {
-            $bodyPrefix = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->key);
+            $bodyPrefix = JiraHelper::buildIssueUrlFromIssueName($jiraIssue->getKey());
         }
 
         if (false === strpos($pullRequestBody, $bodyPrefix)) {
@@ -355,8 +390,12 @@ class GitHubHandler
     }
 
     /**
+     * @throws ClientExceptionInterface
      * @throws InvalidArgumentException
-     * @throws JiraException
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws UnexpectedContentType
      */
     public function synchronize(array $webhookData): void
     {
@@ -396,7 +435,7 @@ class GitHubHandler
         }
 
         if (\in_array(
-            $jiraIssue->fields->status->name,
+            $jiraIssue->getStatus()->getName(),
             [getenv('JIRA_STATUS_BLOCKED'), getenv('JIRA_STATUS_DONE')],
             true
         )) {
@@ -405,9 +444,15 @@ class GitHubHandler
 
         if (false === $this->handleInProgressPullRequest($pullRequest, $jiraIssue)) {
             if (false === $this->isPullRequestApproved($pullRequest)) {
-                if ($jiraIssue->fields->status->name !== getenv('JIRA_STATUS_TO_REVIEW')) {
+                if ($jiraIssue->getStatus()->getName() !== getenv('JIRA_STATUS_TO_REVIEW')) {
                     try {
-                        $this->jiraIssueRepository->transitionIssueTo($jiraIssue->key, getenv('JIRA_TRANSITION_ID_TO_REVIEW'));
+                        $this->jiraIssueRepository->transitionIssueTo(
+                            $jiraIssue->getKey(),
+                            new JiraTransition(
+                                getenv('JIRA_TRANSITION_ID_TO_REVIEW'),
+                                'JirHub performed a transition'
+                            )
+                        );
                     } catch (\Throwable $t) {
                     }
                 }

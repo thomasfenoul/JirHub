@@ -2,7 +2,6 @@
 
 namespace App\Controller;
 
-use App\Client\JiraClient;
 use App\Dashboard\Handler\DashboardHandler;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Routing\Annotation\Route;
@@ -23,7 +22,7 @@ class DashboardController extends AbstractController
     /**
      * @Route("/dashboard", name="get_dashboard", methods={"GET"})
      */
-    public function index(JiraClient $jiraClient)
+    public function index()
     {
         return $this->render('dashboard/index.html.twig', $this->handler->getData());
     }

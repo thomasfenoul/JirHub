@@ -10,28 +10,40 @@ class JiraIssue
     /** @var string */
     private $key;
 
-    /** @var UriInterface */
-    private $uri;
+    /** @var JiraIssueStatus */
+    private $status;
 
     /** @var JiraIssueType */
     private $type;
 
-    /** @var JiraIssueStatus */
-    private $status;
+    /** @var UriInterface */
+    private $uri;
 
-    public function __construct(string $key)
-    {
-        $this->key = $key;
-        $this->uri = new Uri(sprintf(
-            '%s/browse/%s',
-            getenv('JIRA_HOST'),
-            $this->key
-        ));
+    public function __construct(
+        string $key,
+        JiraIssueStatus $status,
+        JiraIssueType $type,
+        Uri $uri
+    ) {
+        $this->key    = $key;
+        $this->status = $status;
+        $this->type   = $type;
+        $this->uri    = $uri;
     }
 
     public function getKey(): string
     {
         return $this->key;
+    }
+
+    public function getStatus(): JiraIssueStatus
+    {
+        return $this->status;
+    }
+
+    public function getIssueType(): JiraIssueType
+    {
+        return $this->getIssueType();
     }
 
     public function getUri(): UriInterface

@@ -4,19 +4,18 @@ namespace App\Model;
 
 class ReviewEnvironment
 {
-    /** @var string $name */
-    protected $name;
+    /** @var string */
+    private $name;
 
-    /** @var PullRequest $pullRequest */
-    protected $pullRequest;
+    /** @var JirHubTask */
+    private $jirHubTask;
 
     /** @var string */
     private $pullRequestTitle;
 
-    public function __construct(string $name, ?PullRequest $pullRequest = null)
+    public function __construct(string $name)
     {
-        $this->name        = $name;
-        $this->pullRequest = $pullRequest;
+        $this->name = $name;
     }
 
     public function getName(): string
@@ -24,14 +23,14 @@ class ReviewEnvironment
         return $this->name;
     }
 
-    public function getPullRequest(): ?PullRequest
+    public function getJirHubTask(): ?JirHubTask
     {
-        return $this->pullRequest;
+        return $this->jirHubTask;
     }
 
-    public function setPullRequest(?PullRequest $pullRequest): self
+    public function setJirHubTask(JirHubTask $jirHubTask): self
     {
-        $this->pullRequest = $pullRequest;
+        $this->jirHubTask = $jirHubTask;
 
         return $this;
     }
@@ -41,12 +40,12 @@ class ReviewEnvironment
         if (null === $this->pullRequestTitle) {
             $issueKey = '';
 
-            if (null !== $this->pullRequest->getJiraIssue()) {
-                $issueKey = $this->pullRequest->getJiraIssue()->getKey();
+            if (null !== $this->jirHubTask->getJiraIssue()) {
+                $issueKey = $this->jirHubTask->getJiraIssue()->getKey();
             }
 
             $this->pullRequestTitle = ucfirst(
-                trim(str_ireplace($issueKey, '', $this->pullRequest->getTitle()), ' :|')
+                trim(str_ireplace($issueKey, '', $this->jirHubTask->getGithubPullRequest()->getTitle()), ' :|-')
             );
         }
 

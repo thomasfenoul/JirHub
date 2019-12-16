@@ -2,15 +2,19 @@
 
 namespace App\Controller;
 
+use App\Exception\UnexpectedContentType;
 use App\Handler\GitHubHandler;
 use App\Repository\GitHub\PullRequestRepository;
-use JiraRestApi\JiraException;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
+use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
+use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 
 class IndexController extends AbstractController
 {
@@ -32,7 +36,11 @@ class IndexController extends AbstractController
     /**
      * @Route("/apply", name="apply_labels", methods={"GET"})
      *
-     * @throws JiraException
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
+     * @throws UnexpectedContentType
      */
     public function applyAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
@@ -69,8 +77,12 @@ class IndexController extends AbstractController
     /**
      * @Route("/github_webhook", name="github_webhook", methods={"POST"})
      *
-     * @throws JiraException
      * @throws InvalidArgumentException
+     * @throws UnexpectedContentType
+     * @throws ClientExceptionInterface
+     * @throws RedirectionExceptionInterface
+     * @throws ServerExceptionInterface
+     * @throws TransportExceptionInterface
      */
     public function githubWebhookAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
