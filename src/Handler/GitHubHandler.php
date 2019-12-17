@@ -409,6 +409,7 @@ class GitHubHandler
     public function synchronize(array $webhookData): void
     {
         $this->cache->deleteItem(DashboardHandler::CACHE_KEY);
+        $this->cache->deleteItem(PullRequestRepository::DEFAULT_LIST);
 
         $pullRequest = null;
 

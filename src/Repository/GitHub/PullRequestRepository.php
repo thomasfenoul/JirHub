@@ -9,10 +9,17 @@ use App\Factory\PullRequestFactory;
 use App\Model\Github\PullRequest;
 use App\Repository\GitHub\Constant\PullRequestSearchFilters;
 use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
+use Psr\Cache\CacheItemPoolInterface;
+use Psr\Cache\InvalidArgumentException;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class PullRequestRepository
 {
+    const DEFAULT_LIST = 'default_pull_request_list';
+
+    /** @var CacheItemPoolInterface */
+    private $cache;
+
     /** @var GitHubClient */
     private $client;
 
@@ -29,12 +36,14 @@ class PullRequestRepository
     private $eventDispatcher;
 
     public function __construct(
+        CacheItemPoolInterface $cache,
         GitHubClient $client,
         string $repositoryOwner,
         string $repositoryName,
         PullRequestFactory $pullRequestFactory,
         EventDispatcherInterface $eventDispatcher
     ) {
+        $this->cache              = $cache;
         $this->client             = $client;
         $this->repositoryOwner    = $repositoryOwner;
         $this->repositoryName     = $repositoryName;
@@ -55,9 +64,21 @@ class PullRequestRepository
 
     /**
      * @return PullRequest[]
+     *
+     * @throws InvalidArgumentException
      */
     public function search(array $parameters = []): array
     {
+        $cacheDefaultList = false;
+        $pullRequests     = [];
+
+        if (
+            false === \array_key_exists(PullRequestSearchFilters::RESULTS_PER_PAGE, $parameters)
+            && false === \array_key_exists(PullRequestSearchFilters::STATE, $parameters)
+        ) {
+            $cacheDefaultList = true;
+        }
+
         $apiParameters = [
             PullRequestSearchFilters::STATE            => 'open',
             PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
@@ -73,13 +94,29 @@ class PullRequestRepository
             unset($parameters[PullRequestSearchFilters::STATE]);
         }
 
-        $pullRequestsData = $this->client->pullRequests()->all(
-            $this->repositoryOwner,
-            $this->repositoryName,
-            $apiParameters
-        );
+        if (true === $cacheDefaultList) {
+            $cacheItem = $this->cache->getItem(self::DEFAULT_LIST);
 
-        $pullRequests = [];
+            if (false === $cacheItem->isHit()) {
+                $cacheItem->set(
+                    $this->client->pullRequests()->all(
+                        $this->repositoryOwner,
+                        $this->repositoryName,
+                        $apiParameters
+                    )
+                );
+
+                $this->cache->save($cacheItem);
+            }
+
+            $pullRequestsData = $cacheItem->get();
+        } else {
+            $pullRequestsData = $this->client->pullRequests()->all(
+                $this->repositoryOwner,
+                $this->repositoryName,
+                $apiParameters
+            );
+        }
 
         foreach ($pullRequestsData as $pullRequestData) {
             $pullRequests[] = $this->pullRequestFactory->create($pullRequestData);
