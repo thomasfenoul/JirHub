@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Model;
+namespace App\Model\Github;
 
 class PullRequest
 {
@@ -25,7 +25,7 @@ class PullRequest
     /** @var string */
     private $headSha;
 
-    /** @var GitHubUser */
+    /** @var GithubUser */
     private $user;
 
     /** @var string[] */
@@ -45,7 +45,7 @@ class PullRequest
         string $baseRef,
         string $url,
         string $headSha,
-        GitHubUser $user,
+        GithubUser $user,
         array $labels
     ) {
         $this->id      = $id;
@@ -94,7 +94,7 @@ class PullRequest
         return $this->headSha;
     }
 
-    public function getUser(): GitHubUser
+    public function getUser(): GithubUser
     {
         return $this->user;
     }

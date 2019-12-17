@@ -1,4 +1,20 @@
 parameters:
+    github.repository_owner:    '%env(GITHUB_REPOSITORY_OWNER)%'
+    github.repository_name:     '%env(GITHUB_REPOSITORY_NAME)%'
+    github.app_id:              '%env(GITHUB_APP_ID)%'
+    github.app_installation_id: '%env(GITHUB_APP_INSTALLATION_ID)%'
+    github.rsa_key:             '%env(GITHUB_PRIVATE_RSA_KEY)%'
+    github.labels:
+        in_progress:             ['WIP', 'WAIT', 'Standby']
+        validated:               '~validated'
+        validation_environments: ['~validation-blue', '~validation-red', '~validation-green', '~validation-yellow']
+        validation_prefix:       '~validation-'
+        validation_required:     '~validation-required'
+    github.approve_count:       3
+    github.default_base_branch: 'dev'
+    jira.host:                  '%env(JIRA_HOST)%'
+    jira.user:                  '%env(JIRA_USER)%'
+    jira.pass:                  '%env(JIRA_PASS)%'
 
 services:
     _defaults:
@@ -14,25 +30,48 @@ services:
         resource: '../src/Controller'
         tags: ['controller.service_arguments']
 
+
+    App\Client\GitHubClient:
+        arguments:
+            $gitHubAppId: '%github.app_id%'
+            $gitHubPrivateRsaKey: '%github.rsa_key%'
+            $gitHubAppInstallationId: '%github.app_installation_id%'
+
+    App\Client\JiraClient:
+        arguments:
+            $host: '%jira.host%'
+            $username: '%jira.user%'
+            $pass: '%jira.pass%'
+
+    App\Factory\JiraIssueFactory:
+        arguments:
+            $host: '%jira.host%'
+
+    App\Handler\GitHubHandler:
+        arguments:
+            $labels:            '%github.labels%'
+            $approveCount:      '%github.approve_count%'
+            $defaultBaseBranch: '%github.default_base_branch%'
+
     App\Repository\GitHub\PullRequestRepository:
         arguments:
-            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
-            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+            $repositoryOwner: '%github.repository_owner%'
+            $repositoryName: '%github.repository_name%'
 
     App\Repository\GitHub\PullRequestReviewRepository:
         arguments:
-            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
-            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+            $repositoryOwner: '%github.repository_owner%'
+            $repositoryName: '%github.repository_name%'
 
     App\Repository\GitHub\PullRequestLabelRepository:
         arguments:
-            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
-            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+            $repositoryOwner: '%github.repository_owner%'
+            $repositoryName: '%github.repository_name%'
 
     App\Repository\GitHub\CommitRepository:
         arguments:
-            $repositoryOwner: '%env(GITHUB_REPOSITORY_OWNER)%'
-            $repositoryName: '%env(GITHUB_REPOSITORY_NAME)%'
+            $repositoryOwner: '%github.repository_owner%'
+            $repositoryName: '%github.repository_name%'
 
     public.logger:
         alias: 'logger'
@@ -40,23 +79,6 @@ services:
 
     Github\HttpClient\Builder:
     Lcobucci\JWT\Builder:
-    JiraRestApi\Issue\IssueService:
-
-    App\Client\GitHubClient:
-        arguments:
-            $gitHubAppId: '%env(GITHUB_APP_ID)%'
-            $gitHubPrivateRsaKey: '%env(GITHUB_PRIVATE_RSA_KEY)%'
-            $gitHubAppInstallationId: '%env(GITHUB_APP_INSTALLATION_ID)%'
-
-    App\Client\JiraClient:
-        arguments:
-            $host: '%env(JIRA_HOST)%'
-            $username: '%env(JIRA_USER)%'
-            $pass: '%env(JIRA_PASS)%'
-
-    App\Factory\JiraIssueFactory:
-        arguments:
-            $host: '%env(JIRA_HOST)%'
 
     JoliCode\Slack\Api\Client:
         factory: ['JoliCode\Slack\ClientFactory', create]

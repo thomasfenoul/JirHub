@@ -3,7 +3,7 @@
 namespace App\Repository\GitHub;
 
 use App\Client\GitHubClient;
-use App\Model\PullRequest;
+use App\Model\Github\PullRequest;
 
 class PullRequestLabelRepository
 {

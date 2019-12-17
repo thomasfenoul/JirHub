@@ -3,8 +3,8 @@
 namespace App\Repository;
 
 use App\Helper\JiraHelper;
+use App\Model\Github\PullRequest;
 use App\Model\JirHubTask;
-use App\Model\PullRequest;
 use App\Repository\Jira\JiraIssueRepository;
 
 class JirHubTaskRepository

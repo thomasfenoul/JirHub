@@ -2,6 +2,8 @@
 
 namespace App\Model;
 
+use App\Model\Github\PullRequest;
+
 class JirHubTask
 {
     /** @var PullRequest */

@@ -1,13 +1,13 @@
 <?php
 
-namespace App\Model;
+namespace App\Model\Github;
 
 class PullRequestReview
 {
     /** @var int */
     private $id;
 
-    /** @var GitHubUser */
+    /** @var GithubUser */
     private $user;
 
     /** @var string */
@@ -21,7 +21,7 @@ class PullRequestReview
 
     public function __construct(
         int $id,
-        GitHubUser $user,
+        GithubUser $user,
         string $body,
         string $state,
         string $url
@@ -38,7 +38,7 @@ class PullRequestReview
         return $this->id;
     }
 
-    public function getUser(): GitHubUser
+    public function getUser(): GithubUser
     {
         return $this->user;
     }

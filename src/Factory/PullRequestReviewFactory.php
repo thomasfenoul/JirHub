@@ -2,16 +2,16 @@
 
 namespace App\Factory;
 
-use App\Model\PullRequestReview;
+use App\Model\Github\PullRequestReview;
 
 class PullRequestReviewFactory
 {
-    /** @var GitHubUserFactory */
+    /** @var GithubUserFactory */
     private $githubUserFactory;
 
-    public function __construct(GitHubUserFactory $gitHubUserFactory)
+    public function __construct(GithubUserFactory $githubUserFactory)
     {
-        $this->githubUserFactory = $gitHubUserFactory;
+        $this->githubUserFactory = $githubUserFactory;
     }
 
     public function create(array $pullRequestReviewData): PullRequestReview

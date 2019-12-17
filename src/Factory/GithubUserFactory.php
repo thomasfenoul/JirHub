@@ -2,13 +2,13 @@
 
 namespace App\Factory;
 
-use App\Model\GitHubUser;
+use App\Model\Github\GithubUser;
 
-class GitHubUserFactory
+class GithubUserFactory
 {
-    public function create(array $userData): GitHubUser
+    public function create(array $userData): GithubUser
     {
-        return new GitHubUser(
+        return new GithubUser(
             $userData['id'],
             $userData['login'],
             $userData['avatar_url']

@@ -6,7 +6,7 @@ use App\Client\GitHubClient;
 use App\Event\PullRequestMergedEvent;
 use App\Event\PullRequestMergeFailureEvent;
 use App\Factory\PullRequestFactory;
-use App\Model\PullRequest;
+use App\Model\Github\PullRequest;
 use App\Repository\GitHub\Constant\PullRequestSearchFilters;
 use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;

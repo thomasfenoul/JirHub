@@ -1,8 +1,8 @@
 <?php
 
-namespace App\Model;
+namespace App\Model\Github;
 
-class GitHubUser
+class GithubUser
 {
     /** @var int */
     private $id;
