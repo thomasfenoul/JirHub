@@ -2,6 +2,8 @@
 
 namespace App\Model\Github;
 
+use App\Model\JiraIssue;
+
 class PullRequest
 {
     /** @var int */

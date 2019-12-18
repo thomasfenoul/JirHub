@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Exception\PullRequestNotFoundException;
 use App\Exception\UnexpectedContentType;
 use App\Handler\GitHubHandler;
 use App\Handler\JirHubTaskHandler;
@@ -85,6 +86,7 @@ class IndexController extends AbstractController
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
+     * @throws PullRequestNotFoundException
      */
     public function githubWebhookAction(
         Request $request,

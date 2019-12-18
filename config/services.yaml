@@ -12,7 +12,7 @@ parameters:
         validation_environments: ['~validation-blue', '~validation-red', '~validation-green', '~validation-yellow']
         validation_prefix:       '~validation-'
         validation_required:     '%github.labels.validation_required%'
-    github.approve_count:       3
+    github.approve_count:       2
     github.default_base_branch: 'dev'
     jira.host:                  '%env(JIRA_HOST)%'
     jira.user:                  '%env(JIRA_USER)%'
