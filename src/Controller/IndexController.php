@@ -4,6 +4,8 @@ namespace App\Controller;
 
 use App\Exception\UnexpectedContentType;
 use App\Handler\GitHubHandler;
+use App\Handler\JirHubTaskHandler;
+use App\Handler\SynchronizationHandler;
 use App\Repository\GitHub\PullRequestRepository;
 use Psr\Cache\InvalidArgumentException;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -84,10 +86,15 @@ class IndexController extends AbstractController
      * @throws ServerExceptionInterface
      * @throws TransportExceptionInterface
      */
-    public function githubWebhookAction(Request $request, GitHubHandler $gitHubHandler): Response
-    {
+    public function githubWebhookAction(
+        Request $request,
+        JirHubTaskHandler $jirHubTaskHandler,
+        SynchronizationHandler $synchronizationHandler
+    ): Response {
         $data = json_decode($request->getContent(), true);
-        $gitHubHandler->synchronize($data);
+
+        $jirHubTask = $jirHubTaskHandler->getJirHubTaskFromGithubWebhookData($data);
+        $synchronizationHandler->synchronize($jirHubTask);
 
         return new Response('', Response::HTTP_NO_CONTENT);
     }

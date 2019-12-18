@@ -4,12 +4,14 @@ parameters:
     github.app_id:              '%env(GITHUB_APP_ID)%'
     github.app_installation_id: '%env(GITHUB_APP_INSTALLATION_ID)%'
     github.rsa_key:             '%env(GITHUB_PRIVATE_RSA_KEY)%'
+    github.labels.validation_required: '~validation-required'
+    github.labels.in_progress:   ['WIP', 'WAIT', 'Standby']
     github.labels:
-        in_progress:             ['WIP', 'WAIT', 'Standby']
+        in_progress:             '%github.labels.in_progress%'
         validated:               '~validated'
         validation_environments: ['~validation-blue', '~validation-red', '~validation-green', '~validation-yellow']
         validation_prefix:       '~validation-'
-        validation_required:     '~validation-required'
+        validation_required:     '%github.labels.validation_required%'
     github.approve_count:       3
     github.default_base_branch: 'dev'
     jira.host:                  '%env(JIRA_HOST)%'
@@ -52,6 +54,36 @@ services:
             $labels:            '%github.labels%'
             $approveCount:      '%github.approve_count%'
             $defaultBaseBranch: '%github.default_base_branch%'
+
+    App\Handler\SynchronizationCommand\DeleteValidationRequiredLabelCommand:
+        arguments:
+            $label: '%github.labels.validation_required%'
+
+    App\Handler\SynchronizationCommand\AddValidationRequiredLabelCommand:
+        arguments:
+            $label: '%github.labels.validation_required%'
+
+    App\Handler\SynchronizationCommand\TransitionJiraIssueToToValidateCommand:
+        arguments:
+            $label: '%github.labels.validation_required%'
+            $transitionId: 71
+            $statusId: 10926
+
+    App\Handler\SynchronizationCommand\TransitionJiraIssueToInReviewCommand:
+        arguments:
+            $label: '%github.labels.validation_required%'
+            $transitionId: 61
+            $statusId: 10700
+
+    App\Handler\SynchronizationCommand\TransitionJiraIssueToInProgressCommand:
+        arguments:
+            $inProgressLabels: '%github.labels.in_progress%'
+            $globalTransitionId: 61
+            $subTaskTransitions:
+                - [statusId: 11021, transitionId: 41]
+                - [statusId: 10700, transitionId: 171]
+            $subTaskTypeId: 10102
+            $statusId: 3
 
     App\Repository\GitHub\PullRequestRepository:
         arguments:
