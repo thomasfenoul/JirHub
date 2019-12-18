@@ -58,7 +58,7 @@ class JiraIssueRepository
         $this->jiraClient->post(
             sprintf(self::ROUTE_POST_TRANSITION, $issueKey),
             [],
-            json_encode($jiraTransition->jsonSerialize())
+            $jiraTransition->toArray()
         );
     }
 }

@@ -47,19 +47,23 @@ class JiraClient
         string $route,
         string $method = 'GET',
         array $queryParameters = [],
-        string $jsonContent = ''
-    ): array {
+        array $requestContent = []
+    ): ?array {
         $response = $this->httpClient->request(
             $method,
             $this->baseUrl . $route,
             [
                 'auth_basic' => [$this->username, $this->pass],
                 'query'      => $queryParameters,
-                'json'       => $jsonContent,
+                'json'       => $requestContent,
             ]
         );
 
         $content = $response->getContent();
+
+        if (204 === $response->getStatusCode()) {
+            return null;
+        }
 
         if (0 !== strpos($response->getHeaders()['content-type'][0], 'application/json')) {
             throw new UnexpectedContentType();
@@ -75,7 +79,7 @@ class JiraClient
      * @throws ServerExceptionInterface
      * @throws UnexpectedContentType
      */
-    public function get(string $route, array $queryParameters = []): array
+    public function get(string $route, array $queryParameters = []): ?array
     {
         return $this->request($route, 'GET', $queryParameters);
     }
@@ -87,8 +91,8 @@ class JiraClient
      * @throws TransportExceptionInterface
      * @throws UnexpectedContentType
      */
-    public function post(string $route, array $queryParameters = [], string $jsonContent = ''): array
+    public function post(string $route, array $queryParameters = [], array $requestContent = []): ?array
     {
-        return $this->request($route, 'POST', $queryParameters, $jsonContent);
+        return $this->request($route, 'POST', $queryParameters, $requestContent);
     }
 }

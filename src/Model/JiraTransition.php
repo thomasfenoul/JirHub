@@ -2,7 +2,7 @@
 
 namespace App\Model;
 
-class JiraTransition implements \JsonSerializable
+class JiraTransition
 {
     private $id;
     private $comment;
@@ -13,7 +13,7 @@ class JiraTransition implements \JsonSerializable
         $this->comment = $comment;
     }
 
-    public function jsonSerialize(): array
+    public function toArray(): array
     {
         return [
             'update' => [
