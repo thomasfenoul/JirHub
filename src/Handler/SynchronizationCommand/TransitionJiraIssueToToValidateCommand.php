@@ -6,6 +6,7 @@ use App\Exception\UnexpectedContentType;
 use App\Model\JiraTransition;
 use App\Model\JirHubTask;
 use App\Repository\Jira\JiraIssueRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
@@ -25,16 +26,21 @@ final class TransitionJiraIssueToToValidateCommand implements SynchronizationCom
     /** @var int */
     private $transitionId;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     public function __construct(
         JiraIssueRepository $jiraIssueRepository,
         string $label,
         int $statusId,
-        int $transitionId
+        int $transitionId,
+    LoggerInterface $logger
     ) {
         $this->jiraIssueRepository = $jiraIssueRepository;
         $this->label               = $label;
         $this->statusId            = $statusId;
         $this->transitionId        = $transitionId;
+        $this->logger              = $logger;
     }
 
     /**
@@ -63,6 +69,10 @@ final class TransitionJiraIssueToToValidateCommand implements SynchronizationCom
                     $this->transitionId,
                     'JirHub transitioned this issue.'
                 )
+            );
+
+            $this->logger->info(
+                sprintf('Transitionned issue %s to To Validate', $jiraIssue->getKey())
             );
         }
     }

@@ -6,6 +6,7 @@ use App\Exception\UnexpectedContentType;
 use App\Model\JiraTransition;
 use App\Model\JirHubTask;
 use App\Repository\Jira\JiraIssueRepository;
+use Psr\Log\LoggerInterface;
 use Symfony\Contracts\HttpClient\Exception\ClientExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\RedirectionExceptionInterface;
 use Symfony\Contracts\HttpClient\Exception\ServerExceptionInterface;
@@ -31,13 +32,17 @@ final class TransitionJiraIssueToInProgressCommand implements SynchronizationCom
     /** @var int */
     private $statusId;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     public function __construct(
         JiraIssueRepository $jiraIssueRepository,
         array $inProgressLabels,
         int $globalTransitionId,
         array $subTaskTransitions,
         int $subTaskTypeId,
-        int $statusId
+        int $statusId,
+        LoggerInterface $logger
     ) {
         $this->jiraIssueRepository = $jiraIssueRepository;
         $this->inProgressLabels    = $inProgressLabels;
@@ -45,6 +50,7 @@ final class TransitionJiraIssueToInProgressCommand implements SynchronizationCom
         $this->subTaskTransitions  = $subTaskTransitions;
         $this->subTaskTypeId       = $subTaskTypeId;
         $this->statusId            = $statusId;
+        $this->logger              = $logger;
     }
 
     /**
@@ -80,6 +86,9 @@ final class TransitionJiraIssueToInProgressCommand implements SynchronizationCom
                 }
 
                 $this->jiraIssueRepository->transitionIssueTo($jiraIssue->getKey(), $transition);
+                $this->logger->info(
+                    sprintf('Transitionned issue %s to In Progress', $jiraIssue->getKey())
+                );
 
                 return;
             }

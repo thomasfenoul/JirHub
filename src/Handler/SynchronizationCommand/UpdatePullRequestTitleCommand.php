@@ -5,15 +5,22 @@ namespace App\Handler\SynchronizationCommand;
 use App\Model\JirHubTask;
 use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
 use App\Repository\GitHub\PullRequestRepository;
+use Psr\Log\LoggerInterface;
 
 final class UpdatePullRequestTitleCommand implements SynchronizationCommandInterface
 {
     /** @var PullRequestRepository */
     private $pullRequestRepository;
 
-    public function __construct(PullRequestRepository $pullRequestRepository)
-    {
+    /** @var LoggerInterface */
+    private $logger;
+
+    public function __construct(
+        PullRequestRepository $pullRequestRepository,
+        LoggerInterface $logger
+    ) {
         $this->pullRequestRepository = $pullRequestRepository;
+        $this->logger                = $logger;
     }
 
     public function execute(JirHubTask $jirHubTask): void
@@ -48,6 +55,10 @@ final class UpdatePullRequestTitleCommand implements SynchronizationCommandInter
             $this->pullRequestRepository->update(
                 $pullRequest,
                 [PullRequestUpdatableFields::TITLE => $betterPrTitle]
+            );
+
+            $this->logger->info(
+                sprintf('Updated pull request #%d title', $jirHubTask->getGithubPullRequest()->getId())
             );
         }
     }

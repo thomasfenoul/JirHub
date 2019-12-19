@@ -5,6 +5,7 @@ namespace App\Handler\SynchronizationCommand;
 use App\Handler\GitHubHandler;
 use App\Model\JirHubTask;
 use App\Repository\GitHub\PullRequestLabelRepository;
+use Psr\Log\LoggerInterface;
 
 final class AddValidationRequiredLabelCommand implements SynchronizationCommandInterface
 {
@@ -17,14 +18,19 @@ final class AddValidationRequiredLabelCommand implements SynchronizationCommandI
     /** @var PullRequestLabelRepository */
     private $pullRequestLabelRepository;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     public function __construct(
         GitHubHandler $githubHandler,
         string $label,
-        PullRequestLabelRepository $pullRequestLabelRepository
+        PullRequestLabelRepository $pullRequestLabelRepository,
+        LoggerInterface $logger
     ) {
         $this->githubHandler              = $githubHandler;
         $this->label                      = $label;
         $this->pullRequestLabelRepository = $pullRequestLabelRepository;
+        $this->logger                     = $logger;
     }
 
     public function execute(JirHubTask $jirHubTask): void
@@ -40,6 +46,14 @@ final class AddValidationRequiredLabelCommand implements SynchronizationCommandI
             $this->pullRequestLabelRepository->create(
                 $pullRequest,
                 $this->label
+            );
+
+            $this->logger->info(
+                sprintf(
+                    'Added label %s to pull request #%d',
+                    $this->label,
+                    $pullRequest->getId()
+                )
             );
         }
     }

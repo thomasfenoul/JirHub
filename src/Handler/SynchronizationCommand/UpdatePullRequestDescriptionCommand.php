@@ -5,15 +5,22 @@ namespace App\Handler\SynchronizationCommand;
 use App\Model\JirHubTask;
 use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
 use App\Repository\GitHub\PullRequestRepository;
+use Psr\Log\LoggerInterface;
 
 final class UpdatePullRequestDescriptionCommand implements SynchronizationCommandInterface
 {
     /** @var PullRequestRepository */
     private $pullRequestRepository;
 
-    public function __construct(PullRequestRepository $pullRequestRepository)
-    {
+    /** @var LoggerInterface */
+    private $logger;
+
+    public function __construct(
+        PullRequestRepository $pullRequestRepository,
+    LoggerInterface $logger
+    ) {
         $this->pullRequestRepository = $pullRequestRepository;
+        $this->logger                = $logger;
     }
 
     public function execute(JirHubTask $jirHubTask): void
@@ -29,6 +36,10 @@ final class UpdatePullRequestDescriptionCommand implements SynchronizationComman
             $this->pullRequestRepository->update(
                 $jirHubTask->getGithubPullRequest(),
                 [PullRequestUpdatableFields::BODY => $bodyPrefix . "\n\n" . $pullRequestBody]
+            );
+
+            $this->logger->info(
+                sprintf('Updated pull request #%d description', $jirHubTask->getGithubPullRequest()->getId())
             );
         }
     }
