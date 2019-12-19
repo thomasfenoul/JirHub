@@ -43,7 +43,7 @@ class JiraIssue
 
     public function getIssueType(): JiraIssueType
     {
-        return $this->getIssueType();
+        return $this->type;
     }
 
     public function getUri(): UriInterface
