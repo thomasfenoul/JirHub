@@ -14,6 +14,7 @@ use App\Repository\GitHub\PullRequestReviewRepository;
 use App\Repository\Jira\JiraIssueRepository;
 use Psr\Cache\CacheItemPoolInterface;
 use Psr\Cache\InvalidArgumentException;
+use Psr\Log\LoggerInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 class GitHubHandler
@@ -48,6 +49,9 @@ class GitHubHandler
     /** @var string */
     private $defaultBaseBranch;
 
+    /** @var LoggerInterface */
+    private $logger;
+
     public function __construct(
         PullRequestRepository $pullRequestRepository,
         PullRequestReviewRepository $pullRequestReviewRepository,
@@ -57,7 +61,8 @@ class GitHubHandler
         CacheItemPoolInterface $cache,
         array $labels,
         int $approveCount,
-        string $defaultBaseBranch
+        string $defaultBaseBranch,
+        LoggerInterface $logger
     ) {
         $this->pullRequestRepository       = $pullRequestRepository;
         $this->pullRequestReviewRepository = $pullRequestReviewRepository;
@@ -68,6 +73,7 @@ class GitHubHandler
         $this->labels                      = $labels;
         $this->approveCount                = $approveCount;
         $this->defaultBaseBranch           = $defaultBaseBranch;
+        $this->logger                      = $logger;
     }
 
     /**
@@ -268,6 +274,12 @@ class GitHubHandler
         }
 
         if (null === $pullRequest) {
+            $this->logger->warning(
+                sprintf(
+                    'Could not find pull request from webhook data : %s', json_encode($webhookData)
+                )
+            );
+
             throw new PullRequestNotFoundException();
         }
 
