@@ -276,10 +276,9 @@ class GitHubHandler
         if (null === $pullRequest) {
             $this->logger->warning(
                 sprintf(
-                    'Could not find pull request from webhook data : %s', json_encode($webhookData)
+                    "Could not find pull request from webhook data : %s", json_encode($webhookData)
                 )
             );
-
             throw new PullRequestNotFoundException();
         }
 
