@@ -2,6 +2,7 @@
 
 namespace App\Handler\SynchronizationCommand;
 
+use App\Constant\GithubLabels;
 use App\Handler\GitHubHandler;
 use App\Model\JirHubTask;
 use App\Repository\GitHub\PullRequestLabelRepository;
@@ -42,6 +43,9 @@ final class DeleteValidationRequiredLabelCommand implements SynchronizationComma
                 !$this->githubHandler->isPullRequestApproved($pullRequest)
                 || $this->githubHandler->isDeployed($pullRequest)
                 || $this->githubHandler->isValidated($pullRequest)
+                || $pullRequest->hasLabel(GithubLabels::WIP)
+                || $pullRequest->hasLabel(GithubLabels::STANDBY)
+                || $pullRequest->hasLabel(GithubLabels::WAIT)
             )
         ) {
             $this->pullRequestLabelRepository->delete(

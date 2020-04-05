@@ -2,6 +2,7 @@
 
 namespace App\Handler\SynchronizationCommand;
 
+use App\Constant\GithubLabels;
 use App\Handler\GitHubHandler;
 use App\Model\JirHubTask;
 use App\Repository\GitHub\PullRequestLabelRepository;
@@ -42,6 +43,9 @@ final class AddValidationRequiredLabelCommand implements SynchronizationCommandI
             && $this->githubHandler->isPullRequestApproved($pullRequest)
             && false === $this->githubHandler->isDeployed($pullRequest)
             && false === $this->githubHandler->isValidated($pullRequest)
+            && false === $pullRequest->hasLabel(GithubLabels::WIP)
+            && false === $pullRequest->hasLabel(GithubLabels::STANDBY)
+            && false === $pullRequest->hasLabel(GithubLabels::WAIT)
         ) {
             $this->pullRequestLabelRepository->create(
                 $pullRequest,
