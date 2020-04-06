@@ -9,4 +9,13 @@ class GithubLabels
     const WIP     = 'WIP';
     const WAIT    = 'WAIT';
     const STANDBY = 'Standby';
+
+    public static function getDevelopmentInProgressLabels()
+    {
+        return [
+            self::WAIT,
+            self::WIP,
+            self::STANDBY,
+        ];
+    }
 }

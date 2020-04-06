@@ -35,22 +35,24 @@ final class UpdatePullRequestLabelsCommand implements SynchronizationCommandInte
         $pullRequest = $jirHubTask->getGithubPullRequest();
         $jiraIssue   = $jirHubTask->getJiraIssue();
 
-        if (null !== $jiraIssue) {
-            if (false === $pullRequest->hasLabel(GithubLabels::BUG)
-                && JiraIssueTypes::BUG === $jiraIssue->getIssueType()->getName()) {
-                $this->pullRequestLabelRepository->create(
-                    $pullRequest,
-                    GithubLabels::BUG
-                );
+        if (null === $jiraIssue) {
+            return;
+        }
 
-                $this->logger->info(
-                    sprintf(
-                        'Added label %s to pull request #%d',
-                        GithubLabels::BUG,
-                        $pullRequest->getId()
-                    )
-                );
-            }
+        if (false === $pullRequest->hasLabel(GithubLabels::BUG)
+            && JiraIssueTypes::BUG === $jiraIssue->getIssueType()->getName()) {
+            $this->pullRequestLabelRepository->create(
+                $pullRequest,
+                GithubLabels::BUG
+            );
+
+            $this->logger->info(
+                sprintf(
+                    'Added label %s to pull request #%d',
+                    GithubLabels::BUG,
+                    $pullRequest->getId()
+                )
+            );
         }
     }
 }
