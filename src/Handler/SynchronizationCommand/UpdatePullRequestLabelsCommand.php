@@ -51,22 +51,6 @@ final class UpdatePullRequestLabelsCommand implements SynchronizationCommandInte
                     )
                 );
             }
-
-            if (true === $pullRequest->hasLabel(GithubLabels::BUG)
-                && JiraIssueTypes::BUG !== $jiraIssue->getIssueType()->getName()) {
-                $this->pullRequestLabelRepository->delete(
-                    $pullRequest,
-                    GithubLabels::BUG
-                );
-
-                $this->logger->info(
-                    sprintf(
-                        'Removed label %s to pull request #%d',
-                        GithubLabels::BUG,
-                        $pullRequest->getId()
-                    )
-                );
-            }
         }
     }
 }
