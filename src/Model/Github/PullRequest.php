@@ -2,6 +2,7 @@
 
 namespace App\Model\Github;
 
+use App\Constant\GithubLabels;
 use App\Model\JiraIssue;
 
 class PullRequest
@@ -109,6 +110,17 @@ class PullRequest
     public function hasLabel(string $label): bool
     {
         return \in_array($label, $this->labels, true);
+    }
+
+    public function isInProgress(): bool
+    {
+        foreach (GithubLabels::getDevelopmentInProgressLabels() as $label) {
+            if (true === \in_array($label, $this->labels, true)) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public function addLabel(string $label): self
