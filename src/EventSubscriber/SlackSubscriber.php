@@ -69,7 +69,9 @@ class SlackSubscriber implements EventSubscriberInterface
             ],
             $message->normalize()
         );
-
+        
+        error_log(json_encode($message));
+        
         $this->client->chatPostMessage($message);
     }
 
