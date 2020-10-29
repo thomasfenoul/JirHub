@@ -55,12 +55,12 @@ class ValidationRequired implements SlackMessage
                         [
                             "type" => "button",
                             "text" => ["type" => "plain_text", "text" => "m'assigner la validation", "emoji" => false],
-//                            "action_id" => "assign-pull-request",
-//                            "value" => [
-//                                'pull_request' => $this->pullRequest->normalize(),
-//                                'validation_env' => $this->reviewEnvironment,
-//                                'jira_issue_key' => $this->jiraIssueKey
-//                            ]
+                            "action_id" => "assign-pull-request",
+                            "value" => json_encode([
+                                'pull_request' => $this->pullRequest->normalize(),
+                                'validation_env' => $this->reviewEnvironment,
+                                'jira_issue_key' => $this->jiraIssueKey
+                            ])
                         ]
                     ]
                 ]
