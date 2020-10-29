@@ -4,8 +4,6 @@ namespace App\EventSubscriber;
 
 use App\Event\LabelsAppliedEvent;
 use App\Event\PullRequestMergeFailureEvent;
-use App\Helper\JiraHelper;
-use App\Model\Github\PullRequest;
 use App\Model\Slack\SlackMessage;
 use App\Model\Slack\ValidationRequired;
 use JoliCode\Slack\Api\Client;
