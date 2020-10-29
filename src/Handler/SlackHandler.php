@@ -32,7 +32,7 @@ class SlackHandler
             $this->client->postAsync(
                 $body['actions'][0]['response_url'],
                 [
-                    'body' => array_merge(
+                    'json' => array_merge(
                         ["replace_original" => true],
                         (new ValidationInProgress(
                             PullRequest::denormalize($value['pull_request']),
