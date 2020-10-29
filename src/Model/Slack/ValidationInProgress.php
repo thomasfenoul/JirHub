@@ -38,20 +38,29 @@ class ValidationInProgress implements SlackMessage
             $blame   = '';
         }
 
-        $message = sprintf(
-            "%s dispo sur `%s` %s\n Pull Request : %s",
-            $subject,
-            $this->reviewEnvironment,
-            $blame,
-            $this->pullRequest->getUrl()
-        );
-
         return [
             'icon_emoji' => ':male-detective:',
             'blocks'     => json_encode([
                 [
                     "type" => "section",
-                    "text" => ["type" => "mrkdwn", "text" => $message]
+                    "fields"=> [
+                        [
+                            "type" => "mrkdwn",
+                            "text"=> "*Environement:*\n{$this->reviewEnvironment}"
+                        ],
+                        [
+                            "type" => "mrkdwn",
+                            "text"=> "*Issue:*\n{$subject}"
+                        ],
+                        [
+                            "type" => "mrkdwn",
+                            "text"=> "*Pull request:*\n{$this->pullRequest->getUrl()}"
+                        ],
+                        [
+                            "type" => "mrkdwn",
+                            "text"=> "*Auteur:*\n{$blame}"
+                        ],
+                    ]
                 ],
                 [
                     "type" => "section",
@@ -62,7 +71,7 @@ class ValidationInProgress implements SlackMessage
                     "elements" => [
                         [
                             "type" => "button",
-                            "text" => ["type" => "plain_text", "text" => "approuver", "emoji" => false],
+                            "text" => ["type" => "plain_text", "text" => "Approuver", "emoji" => false],
                             "action_id" => "approve-pull-request",
                             "style" => "primary",
                             "value" => json_encode([
@@ -73,7 +82,7 @@ class ValidationInProgress implements SlackMessage
                         ],
                         [
                             "type" => "button",
-                            "text" => ["type" => "plain_text", "text" => "rejeter", "emoji" => false],
+                            "text" => ["type" => "plain_text", "text" => "Rejeter", "emoji" => false],
                             "action_id" => "reject-pull-request",
                             "style" => "danger",
                             "value" => json_encode([
