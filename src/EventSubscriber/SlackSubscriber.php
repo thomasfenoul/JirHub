@@ -52,6 +52,7 @@ class SlackSubscriber implements EventSubscriberInterface
                 getenv('SLACK_REVIEW_CHANNEL')
             );
         } catch (\Throwable $t) {
+            error_log($t->getMessage());
         }
     }
 
@@ -60,14 +61,16 @@ class SlackSubscriber implements EventSubscriberInterface
         if ('' === $channel) {
             $channel = getenv('SLACK_DEV_CHANNEL');
         }
-
-        $this->client->chatPostMessage(array_merge(
+        
+        $message = array_merge(
             [
                 'username' => 'JirHub',
                 'channel'  => $channel
             ],
             $message->normalize()
-        ));
+        );
+
+        $this->client->chatPostMessage($message);
     }
 
     protected function sendRawMessage(string $message, string $channel = '')
