@@ -55,7 +55,7 @@ class ValidationInProgress implements SlackMessage
                 ],
                 [
                     "type" => "section",
-                    "text" => ["type" => "mrkdwn", "text" => "Validation en cours par @{$this->validator}"]
+                    "text" => ["type" => "mrkdwn", "text" => ":male-detective: Validation en cours par @{$this->validator}"]
                 ],
                 [
                     "type" => "actions",
@@ -64,21 +64,18 @@ class ValidationInProgress implements SlackMessage
                             "type" => "button",
                             "text" => ["type" => "plain_text", "text" => "approuver", "emoji" => false],
                             "action_id" => "approve-pull-request",
+                            "style" => "primary",
                             "value" => json_encode([
                                 'pull_request' => $this->pullRequest->normalize(),
                                 'validation_env' => $this->reviewEnvironment,
                                 'jira_issue_key' => $this->jiraIssueKey
                             ])
-                        ]
-                    ]
-                ],
-                [
-                    "type" => "actions",
-                    "elements" => [
+                        ],
                         [
                             "type" => "button",
                             "text" => ["type" => "plain_text", "text" => "rejeter", "emoji" => false],
                             "action_id" => "reject-pull-request",
+                            "style" => "danger",
                             "value" => json_encode([
                                 'pull_request' => $this->pullRequest->normalize(),
                                 'validation_env' => $this->reviewEnvironment,
