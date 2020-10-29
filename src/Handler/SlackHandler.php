@@ -29,7 +29,7 @@ class SlackHandler
             
             $value = json_decode($body['actions'][0]['value'], true);
             
-            $this->client->postAsync(
+            $this->client->post(
                 $body['response_url'],
                 [
                     'json' => array_merge(
