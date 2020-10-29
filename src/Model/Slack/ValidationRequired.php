@@ -44,7 +44,7 @@ class ValidationRequired implements SlackMessage
 
         return [
             'icon_emoji' => ':radioactive_sign:',
-            'blocks'     => [
+            'blocks'     => json_encode([
                 [
                     "type" => "section",
                     "text" => ["type" => "mrkdwn", "text" => $message]
@@ -64,7 +64,7 @@ class ValidationRequired implements SlackMessage
                         ]
                     ]
                 ]
-            ]
+            ])
         ];
     }
 }
