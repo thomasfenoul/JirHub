@@ -31,11 +31,9 @@ class ValidationInProgress implements SlackMessage
     {
 
         $subject = $this->reviewEnvironment;
-        $blame   = '(demander à ' . $this->pullRequest->getUser()->getLogin() . ' de retrouver la tâche Jira)';
 
         if (null !== $this->jiraIssueKey) {
             $subject = JiraHelper::buildIssueUrlFromIssueName($this->jiraIssueKey);
-            $blame   = '';
         }
 
         return [
@@ -46,7 +44,11 @@ class ValidationInProgress implements SlackMessage
                     "fields"=> [
                         [
                             "type" => "mrkdwn",
-                            "text"=> "*Environement:*\n{$this->reviewEnvironment}"
+                            "text"=> "*Environement:* {$this->reviewEnvironment}"
+                        ],
+                        [
+                            "type" => "mrkdwn",
+                            "text"=> "*Auteur:* {$this->pullRequest->getUser()->getLogin()}"
                         ],
                         [
                             "type" => "mrkdwn",
@@ -55,10 +57,6 @@ class ValidationInProgress implements SlackMessage
                         [
                             "type" => "mrkdwn",
                             "text"=> "*Pull request:*\n{$this->pullRequest->getUrl()}"
-                        ],
-                        [
-                            "type" => "mrkdwn",
-                            "text"=> "*Auteur:*\n{$blame}"
                         ],
                     ]
                 ],
