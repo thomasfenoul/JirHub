@@ -109,6 +109,8 @@ class IndexController extends AbstractController
         Request $request,
         SlackHandler $slackHandler
     ): Response {
+        error_log($request->getContent());
+        
         return new Response($slackHandler->handleInteraction(json_decode($request->getContent(), true)), Response::HTTP_OK);
     }
 }
