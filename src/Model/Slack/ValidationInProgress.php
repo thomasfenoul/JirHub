@@ -48,7 +48,7 @@ class ValidationInProgress implements SlackMessage
 
         return [
             'icon_emoji' => ':male-detective:',
-            'blocks'     => json_encode([
+            'blocks'     => [
                 [
                     "type" => "section",
                     "text" => ["type" => "mrkdwn", "text" => $message]
@@ -87,7 +87,7 @@ class ValidationInProgress implements SlackMessage
                         ]
                     ]
                 ]
-            ])
+            ]
         ];
     }
 }
