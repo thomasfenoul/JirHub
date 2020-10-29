@@ -10,14 +10,17 @@ class SlackHandler
 {
     /** @var Client */
     private $client;
-
-    /** @var string */
-    private $token;
     
-    public function __construct(Client $client, string $token)
+    public function __construct(string $token)
     {
-        $this->client = $client;
-        $this->token = $token;
+        $this->client = new Client(
+            [
+                'headers'  => [
+                    'Authorization' => 'Bearer ' . $token,
+                    'Content-Type'  => 'application/json',
+                ],
+            ]
+        );
     }
 
     public function handleInteraction(array $body): array
@@ -26,13 +29,9 @@ class SlackHandler
             
             $value = json_decode($body['actions'][0]['value'], true);
             
-            
             $this->client->postAsync(
                 $body['actions'][0]['response_url'],
                 [
-                    'headers' => [
-                        'Authorization' => 'Bearer '.$this->token
-                    ],
                     'body' => array_merge(
                         ["replace_original" => true],
                         (new ValidationInProgress(
