@@ -34,7 +34,7 @@ class GitHubHandler
     /** @var JiraIssueRepository */
     private $jiraIssueRepository;
 
-    /** @var EventDispatcherInterface $eventDispatcher */
+    /** @var EventDispatcherInterface */
     private $eventDispatcher;
 
     /** @var CacheItemPoolInterface */
