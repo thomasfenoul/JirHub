@@ -19,7 +19,7 @@ class PullRequestFactory
         return new PullRequest(
             $pullRequestData['number'],
             $pullRequestData['title'],
-            $pullRequestData['body'],
+            $pullRequestData['body'] ?? '',
             $pullRequestData['head']['ref'],
             $pullRequestData['base']['ref'],
             $pullRequestData['html_url'],
