@@ -4,6 +4,7 @@ namespace App\Handler\SynchronizationCommand;
 
 use App\Model\JirHubTask;
 use App\Repository\GitHub\Constant\PullRequestUpdatableFields;
+use App\Repository\GitHub\PullRequestLabelRepository;
 use App\Repository\GitHub\PullRequestRepository;
 use Psr\Log\LoggerInterface;
 
@@ -12,14 +13,19 @@ final class UpdatePullRequestTitleCommand implements SynchronizationCommandInter
     /** @var PullRequestRepository */
     private $pullRequestRepository;
 
+    /** @var PullRequestLabelRepository */
+    private $pullRequestLabelRepository;
+
     /** @var LoggerInterface */
     private $logger;
 
     public function __construct(
         PullRequestRepository $pullRequestRepository,
+        PullRequestLabelRepository $pullRequestLabelRepository,
         LoggerInterface $logger
     ) {
         $this->pullRequestRepository = $pullRequestRepository;
+        $this->pullRequestLabelRepository = $pullRequestLabelRepository;
         $this->logger                = $logger;
     }
 
@@ -47,7 +53,18 @@ final class UpdatePullRequestTitleCommand implements SynchronizationCommandInter
             if ($pullRequest->hasLabel($label) && empty($matches['prefix'])) {
                 $betterPrTitle = sprintf('[%s] %s', $prefix, $title);
             } elseif (!$pullRequest->hasLabel($label) && $matches['prefix'] === $prefix) {
-                $betterPrTitle = str_replace(sprintf('[%s] ', $prefix), '', $title);
+                $this->pullRequestLabelRepository->create(
+                    $pullRequest,
+                    $label
+                );
+    
+                $this->logger->info(
+                    sprintf(
+                        'Added label %s to pull request #%d',
+                        $label,
+                        $pullRequest->getId()
+                    )
+                );
             }
         }
 
