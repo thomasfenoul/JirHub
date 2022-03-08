@@ -81,7 +81,7 @@ class PullRequestRepository
 
         $apiParameters = [
             PullRequestSearchFilters::STATE            => 'open',
-            PullRequestSearchFilters::RESULTS_PER_PAGE => 50,
+            PullRequestSearchFilters::RESULTS_PER_PAGE => 200,
         ];
 
         if (\array_key_exists(PullRequestSearchFilters::RESULTS_PER_PAGE, $parameters)) {
