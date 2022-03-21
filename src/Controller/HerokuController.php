@@ -5,6 +5,7 @@ namespace App\Controller;
 use App\Handler\ChangelogHandler;
 use JoliCode\Slack\Api\Client as SlackClient;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Cache\Adapter\FilesystemAdapter;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpKernel\Exception\UnauthorizedHttpException;
@@ -17,6 +18,9 @@ class HerokuController extends AbstractController
 
     /** @var ChangelogHandler */
     protected $changelogHandler;
+
+    /** @var FilesystemAdapter */
+    private $cache;
 
     private string $deployHookToken;
     private string $repositoryOwner;
@@ -31,6 +35,7 @@ class HerokuController extends AbstractController
         $this->repositoryOwner       = $repositoryOwner;
         $this->repositoryName        = $repositoryName;
         $this->slackChangelogChannel = $slackChangelogChannel;
+        $this->cache                 = new FilesystemAdapter();
     }
 
     /**
@@ -62,8 +67,17 @@ class HerokuController extends AbstractController
 
         $head      = $requestBag->get('head');
         $prev_head = $requestBag->get('prev_head');
-        $release   = $requestBag->get('release');
         $diff_url  = sprintf('https://github.com/%s/%s/compare/%s...%s', $repositoryOwner, $repositoryName, $prev_head, $head);
+        $release   = $requestBag->get('release');
+
+        $lastRelease = $this->cache->getItem('lastRelease');
+
+        if ($lastRelease->isHit() && $lastRelease->get() === $release) {
+            return new Response(null, Response::HTTP_NO_CONTENT);
+        }
+
+        $lastRelease->set($release);
+        $this->cache->save($lastRelease);
 
         $commits = $this->changelogHandler->getOrderedChangelog($prev_head, $head);
 
