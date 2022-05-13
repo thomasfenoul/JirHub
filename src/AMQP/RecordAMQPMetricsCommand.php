@@ -35,6 +35,7 @@ class RecordAMQPMetricsCommand extends Command
     {
         $params = ['body' => []];
         $metrics = $this->AMQPQueueMetricsRepository->getQueuesMetrics();
+        $now = (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339);
 
         foreach ($metrics as $metric){
             $params['body'][] = [
@@ -43,6 +44,7 @@ class RecordAMQPMetricsCommand extends Command
                 ]
             ];
 
+            $metric['@timestamp'] = $now;
             $params['body'][] = $metric;
         }
 
