@@ -57,7 +57,7 @@ class HerokuManageCommand extends Command
     /**
      * @throws GuzzleException
      */
-    protected function execute(InputInterface $input, OutputInterface $output): void
+    protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $this->logger->info(sprintf('%s : exécution de la commande', self::$defaultName));
 
@@ -76,5 +76,7 @@ class HerokuManageCommand extends Command
 
                 break;
         }
+
+        return 0;
     }
 }

@@ -31,24 +31,26 @@ class RecordAMQPMetricsCommand extends Command
         $this->setDescription('Record all AMQP queues metrics');
     }
 
-    public function execute(InputInterface $input, OutputInterface $output): void
+    public function execute(InputInterface $input, OutputInterface $output): int
     {
-        $params = ['body' => []];
+        $params  = ['body' => []];
         $metrics = $this->AMQPQueueMetricsRepository->getQueuesMetrics();
-        $now = (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339);
+        $now     = (new \DateTimeImmutable())->format(\DateTimeInterface::RFC3339);
 
-        foreach ($metrics as $metric){
+        foreach ($metrics as $metric) {
             $params['body'][] = [
                 'index' => [
                     '_index' => $this->index,
                 ],
-                'op_type' => 'create'
+                'op_type' => 'create',
             ];
 
             $metric['@timestamp'] = $now;
-            $params['body'][] = $metric;
+            $params['body'][]     = $metric;
         }
 
         $this->elasticsearchClient->bulk($params);
+
+        return 0;
     }
 }
