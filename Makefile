@@ -11,16 +11,16 @@ test-unit:
 	vendor/bin/codecept run unit
 
 fix-cs:
-	docker exec jirhub_php php vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix
+	docker exec jirhub_php_2 php vendor/friendsofphp/php-cs-fixer/php-cs-fixer fix
 
 cc:
-	docker exec jirhub_php php bin/console cache:clear
+	docker exec jirhub_php_2 php bin/console cache:clear
 
 cc-hard:
-	docker exec -it jirhub_php bash -c "rm -rf ./var/cache/dev/*"
+	docker exec -it jirhub_php_2 bash -c "rm -rf ./var/cache/dev/*"
 
 bash:
-	docker exec -it jirhub_php sh
+	docker exec -it jirhub_php_2 bash
 
 restart: stop start
 
@@ -46,10 +46,10 @@ require:
 	cmd="require $(pck)" $(MAKE) composer
 
 composer:
-	docker exec -it jirhub_php composer $(cmd)
+	docker exec -it jirhub_php_2 composer $(cmd)
 
 console:
 	$(SF_CONSOLE) $(cmd)
 
 lint:
-	docker exec jirhub_php vendor/bin/php-cs-fixer fix --using-cache=no --config=.php-cs-fixer.dist.php `git diff --name-status --diff-filter=AM ':!*.png' ':!*.pdf' ':!*.csv', ':!*.jpeg' | sed '/^D/d' | sed 's/^R.*\t\(.*\)\t.*/\1/g' | sed 's/^[M|A]\t\(.*\)/\1/g'`
+	docker exec jirhub_php_2 vendor/bin/php-cs-fixer fix --using-cache=no --config=.php-cs-fixer.dist.php `git diff --name-status --diff-filter=AM ':!*.png' ':!*.pdf' ':!*.csv', ':!*.jpeg' | sed '/^D/d' | sed 's/^R.*\t\(.*\)\t.*/\1/g' | sed 's/^[M|A]\t\(.*\)/\1/g'`

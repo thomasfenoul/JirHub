@@ -3,7 +3,6 @@
 namespace App\Handler;
 
 use App\External\HerokuApi;
-use GuzzleHttp\Exception\GuzzleException;
 
 class HerokuHandler
 {
@@ -15,9 +14,6 @@ class HerokuHandler
         $this->herokuApi = $herokuApi;
     }
 
-    /**
-     * @throws GuzzleException
-     */
     public function updateDynoQuantity(array $appNames, array $dynoTypes, int $quantity)
     {
         foreach ($appNames as $appName) {

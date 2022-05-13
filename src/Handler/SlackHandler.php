@@ -6,7 +6,7 @@ use App\Model\Github\PullRequest;
 use App\Model\Slack\ValidationApproved;
 use App\Model\Slack\ValidationInProgress;
 use App\Model\Slack\ValidationRejected;
-use GuzzleHttp\Client;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class SlackHandler
 {
@@ -14,12 +14,15 @@ class SlackHandler
     const ACTION_VALIDATION_APPROVE = 'approve-pull-request';
     const ACTION_VALIDATION_REJECT  = 'reject-pull-request';
 
-    /** @var Client */
+    /** @var HttpClientInterface */
     private $client;
 
-    public function __construct(string $token)
+    public function __construct(
+        HttpClientInterface $client,
+        string $token
+    )
     {
-        $this->client = new Client(
+        $this->client = $client->withOptions(
             [
                 'headers' => [
                     'Authorization' => 'Bearer ' . $token,

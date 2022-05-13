@@ -1,17 +1,22 @@
-FROM php:7.4-fpm-alpine
+FROM php:8.1-fpm-buster
 
-RUN apk update && apk add --no-cache \
-    zlib-dev \
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git-core \
+    libicu-dev \
     libzip-dev \
-    icu-dev
-
-RUN docker-php-ext-configure \
-    intl
+    unzip \
+    zlib1g-dev \
+    wget
 
 RUN docker-php-ext-install \
     zip \
     intl
 
-RUN echo "Install composer globally" \
-   && curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer
+RUN curl -sS https://getcomposer.org/installer | php -- --install-dir=/usr/bin/ --filename=composer
 
+RUN groupadd -g 1000 php && \
+    useradd --create-home --shell /bin/bash -u 1000 -g 1000 php
+
+USER php
+
+WORKDIR /var/www/html

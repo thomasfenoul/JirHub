@@ -5,7 +5,7 @@ namespace App\Factory;
 use App\Model\JiraIssue;
 use App\Model\JiraIssueStatus;
 use App\Model\JiraIssueType;
-use GuzzleHttp\Psr7\Uri;
+use Nyholm\Psr7\Uri;
 
 class JiraIssueFactory
 {

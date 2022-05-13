@@ -2,37 +2,32 @@
 
 namespace App\External;
 
-use GuzzleHttp\Client;
-use GuzzleHttp\Exception\GuzzleException;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Contracts\HttpClient\HttpClientInterface;
 
 class HerokuApi
 {
-    /** @var Client */
-    private $guzzleClient;
+    /** @var HttpClientInterface */
+    private $httpClient;
 
-    public function __construct(string $domain, string $apiKey)
+    public function __construct(
+        HttpClientInterface $httpClient,
+        string              $domain,
+        string              $apiKey
+    )
     {
-        if (null === $this->guzzleClient) {
-            $this->guzzleClient = new Client(
-                [
-                    'base_uri' => $domain,
-                    'headers'  => [
-                        'Authorization' => 'Bearer ' . $apiKey,
-                        'Content-Type'  => 'application/json',
-                        'Accept'        => 'application/vnd.heroku+json; version=3',
-                    ],
-                ]
-            );
-        }
+        $this->httpClient = $httpClient->withOptions([
+            'base_uri' => $domain,
+            'headers' => [
+                'Authorization' => 'Bearer ' . $apiKey,
+                'Accept' => 'application/vnd.heroku+json; version=3',
+            ]
+        ]);
     }
 
-    /**
-     * @throws GuzzleException
-     */
     public function updateFormationQuantity(string $appName, string $formationType, int $quantity): array
     {
-        $res = $this->guzzleClient->request(
+        $res = $this->httpClient->request(
             Request::METHOD_PATCH,
             'apps/' . $appName . '/formation/' . $formationType,
             [
@@ -42,6 +37,6 @@ class HerokuApi
             ]
         );
 
-        return json_decode($res->getBody()->getContents(), true);
+        return $res->toArray();
     }
 }

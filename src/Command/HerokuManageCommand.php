@@ -3,7 +3,6 @@
 namespace App\Command;
 
 use App\Handler\HerokuHandler;
-use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputInterface;
@@ -54,9 +53,6 @@ class HerokuManageCommand extends Command
             );
     }
 
-    /**
-     * @throws GuzzleException
-     */
     protected function execute(InputInterface $input, OutputInterface $output): void
     {
         $this->logger->info(sprintf('%s : exécution de la commande', self::$defaultName));

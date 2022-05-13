@@ -27,7 +27,14 @@ class HerokuController extends AbstractController
     private string $repositoryName;
     private string $slackChangelogChannel;
 
-    public function __construct(SlackClient $slack, ChangelogHandler $changelogHandler, string $deployHookToken, string $repositoryOwner, string $repositoryName, string $slackChangelogChannel)
+    public function __construct(
+        SlackClient $slack,
+        ChangelogHandler $changelogHandler,
+        string $deployHookToken,
+        string $repositoryOwner,
+        string $repositoryName,
+        string $slackChangelogChannel
+    )
     {
         $this->slack                 = $slack;
         $this->changelogHandler      = $changelogHandler;
