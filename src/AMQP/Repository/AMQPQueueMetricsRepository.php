@@ -16,10 +16,10 @@ class AMQPQueueMetricsRepository
         $this->vhost      = $vhost;
     }
 
-    public function getQueuesMetrics(): string
+    public function getQueuesMetrics(): array
     {
         $response = $this->httpClient->request(Request::METHOD_GET, '/api/queues/' . $this->vhost);
 
-        return $response->getContent();
+        return $response->toArray();
     }
 }

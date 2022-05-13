@@ -10,4 +10,4 @@ services:
 
   App\AMQP\Repository\AMQPQueueMetricsRepository:
     arguments:
-        $vhost: '%env(AMQP_MONITORING_VHOST)%'
+      $vhost: '%env(AMQP_MONITORING_VHOST)%'

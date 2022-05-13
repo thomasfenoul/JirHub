@@ -33,10 +33,19 @@ class RecordAMQPMetricsCommand extends Command
 
     public function execute(InputInterface $input, OutputInterface $output): void
     {
-        $this->elasticsearchClient->create([
-            'id'    => uniqid(),
-            'index' => $this->index,
-            'body'  => $this->AMQPQueueMetricsRepository->getQueuesMetrics(),
-        ]);
+        $params = ['body' => []];
+        $metrics = $this->AMQPQueueMetricsRepository->getQueuesMetrics();
+
+        foreach ($metrics as $metric){
+            $params['body'][] = [
+                'index' => [
+                    '_index' => $this->index,
+                ]
+            ];
+
+            $params['body'][] = $metric;
+        }
+
+        $this->elasticsearchClient->bulk($params);
     }
 }
