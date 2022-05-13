@@ -41,8 +41,8 @@ class RecordAMQPMetricsCommand extends Command
             $params['body'][] = [
                 'index' => [
                     '_index' => $this->index,
+                    'op_type' => 'create',
                 ],
-                'op_type' => 'create',
             ];
 
             $metric['@timestamp'] = $now;
