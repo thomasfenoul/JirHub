@@ -27,4 +27,12 @@ class ChangelogController extends AbstractController
 
         return $response;
     }
+
+    /**
+     * @Route("/commits", name="commits", methods={"GET"})
+     */
+    public function commits()
+    {
+        return $this->render('dashboard/commits.html.twig', $this->handler->getCommitsLinks());
+    }
 }

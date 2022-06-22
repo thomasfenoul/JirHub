@@ -21,48 +21,59 @@ class ChangelogHandler
 
     public function getProductionChangelog(): array
     {
-        return $this->getOrderedChangelog('master', 'dev');
+        $messagesLinks = $this->getOrderedChangelog('master', 'dev');
+        $messages = [];
+        foreach ($messagesLinks as $value) {
+            if (is_array($value)) {
+                $messages[] = $value['message'];
+            } else {
+                $messages[] = $value;
+            }
+        }
+
+        return $messages;
     }
 
     public function getChangelog($prev_head, $head): array
     {
-        $result = $this->commitRepository->getChangelog($prev_head, $head);
+        $commits = $this->commitRepository->getChangelog($prev_head, $head);
+        $messagesLinks = [];
 
-        $messages = array_column(
-            array_column($result['commits'], 'commit'),
-            'message'
-        );
+        foreach ($commits['commits'] as $commit) {
 
-        return array_map(function (string $message) {
-            return explode(PHP_EOL, $message)[0];
-        }, $messages);
+            $messagesLinks[] = ['message' => explode(PHP_EOL, $commit['commit']['message'])[0], 'html_url' => $commit['html_url']];
+        }
+
+        return $messagesLinks;
     }
 
     public function getOrderedChangelog($prev_head, $head): array
     {
-        $messages = $this->getChangelog($prev_head, $head);
-
-        $messages = array_filter($messages, function ($message) {
+        $messagesLinks = $this->getChangelog($prev_head, $head);
+        $messagesLinks = array_filter($messagesLinks, function ($messagesLink) {
             $prefixes = ['MEP', 'Merge branch'];
 
             foreach ($prefixes as $prefix) {
-                if (mb_substr($message, 0, mb_strlen($prefix)) === $prefix) {
+                if (mb_substr($messagesLink['message'], 0, mb_strlen($prefix)) === $prefix) {
                     return false;
                 }
             }
 
             return true;
-        });
+        }); 
+
 
         $plSections = [];
         $commits    = [];
 
-        foreach ($messages as $message) {
-            $commit = ['message' => trim($message), 'labels' => []];
-            preg_match('/\(?#(\d+)\)?$/', $message, $matches);
+        foreach ($messagesLinks as $key => $value) {
 
+            $commit = ['message' => trim($value['message']), 'labels' => [], 'html_url' => []];
+            preg_match('/\(?#(\d+)\)?$/', $value['message'], $matches);
+            $commit['html_url'] = $messagesLinks[$key]['html_url'];
             if (isset($matches[1])) {
                 $commit['labels'] = $this->_getPullRequestLabels($matches[1]);
+
 
                 foreach ($commit['labels'] as $label) {
                     if ('PL' === mb_substr($label, 0, 2) && !\in_array($label, $plSections)) {
@@ -75,19 +86,21 @@ class ChangelogHandler
 
         natsort($plSections);
 
-        $messages = [];
+        $messagesLinks = [];
 
         foreach ($plSections as $plSection) {
-            $messages[] = $plSection;
-            $messages[] = preg_replace('/.?/', '-', $plSection);
+            $messagesLinks[] = $plSection;
+            $messagesLinks[] = preg_replace('/.?/', '-', $plSection);
 
             foreach ($commits as $key => $commit) {
                 if (\in_array($plSection, $commit['labels'])) {
-                    $messages[] = $commit['message'];
+                    $messagesLinks[] = ['message' => $commit['message'], 'html_url' => $commit['html_url']];
+
+
                     unset($commits[$key]);
                 }
             }
-            $messages[] = null;
+            $messagesLinks[] = null;
         }
 
         $bugMessages = [];
@@ -95,30 +108,33 @@ class ChangelogHandler
         foreach ($commits as $key => $commit) {
             if (\in_array('bug', $commit['labels'])) {
                 $bugMessages[] = $commit['message'];
+
                 unset($commits[$key]);
             }
+            unset($commits[$key]['labels']);
         }
 
         if (\count($bugMessages) > 0) {
-            $messages[] = 'Bug fixes';
-            $messages[] = '---------';
-            $messages   = array_merge($messages, $bugMessages);
-            $messages[] = null;
+            $messagesLinks[] = 'Bug fixes';
+            $messagesLinks[] = '---------';
+            $messagesLinks   = array_merge($messagesLinks, $bugMessages);
+            $messagesLinks[] = null;
         }
+
 
         if (\count($commits) > 0) {
-            if (\count($messages) > 0) {
-                $messages[] = 'Autres';
-                $messages[] = '------';
+            if (\count($messagesLinks) > 0) {
+                $messagesLinks[] = 'Autres';
+                $messagesLinks[] = '------';
             }
-            $messages = array_merge($messages, array_column($commits, 'message'));
+            $messagesLinks = array_merge($messagesLinks, $commits);
         }
 
-        if (\count($messages) > 0 && null === $messages[\count($messages) - 1]) {
-            unset($messages[\count($messages) - 1]);
+        if (\count($messagesLinks) > 0 && null === $messagesLinks[\count($messagesLinks) - 1]) {
+            unset($messagesLinks[\count($messagesLinks) - 1]);
         }
 
-        return $messages;
+        return $messagesLinks;
     }
 
     private function _getPullRequestLabels($pullRequestId): array
@@ -126,5 +142,17 @@ class ChangelogHandler
         $pullRequest = $this->pullRequestRepository->fetch($pullRequestId);
 
         return $pullRequest->getLabels();
+    }
+
+
+    public function getCommitsLinks(): array
+    {
+        $type= [];
+        $messagesLinks = $this->getOrderedChangelog('master', 'dev');
+        foreach ($messagesLinks as $value) {
+            $type[] = gettype($value);
+        }
+
+        return ['num' => count($messagesLinks), 'type' => $type, 'messageLinks' =>  $messagesLinks];
     }
 }
