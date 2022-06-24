@@ -22,7 +22,7 @@ class ChangelogController extends AbstractController
      */
     public function index()
     {
-        $response = new Response(implode(PHP_EOL, $this->handler->getProductionChangelog()));
+        $response = new Response(implode(PHP_EOL, $this->handler->getChangelog('master', 'dev')));
         $response->headers->set('Content-Type', 'text/plain');
 
         return $response;
@@ -33,6 +33,6 @@ class ChangelogController extends AbstractController
      */
     public function commits()
     {
-        return $this->render('dashboard/commits.html.twig', $this->handler->getCommitsLinks());
+        return $this->render('dashboard/commits.html.twig', $this->handler->getChangelogWithLinks('master', 'dev'));
     }
 }
