@@ -7,10 +7,11 @@ use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
-class OutdatedLibraries extends Command
+class ComposerOutdated extends Command
 {
+    use PatternTrait;
     /** @var string */
-    protected static $defaultName = 'collect:outdated-libraries';
+    protected static $defaultName = 'collect:composer-outdated-libraries';
 
     protected function configure(): void
     {
@@ -22,7 +23,8 @@ class OutdatedLibraries extends Command
     {
         $path    = $input->getArgument('path');
         $content = json_decode(file_get_contents($path), true);
-        $tab     = [];
+        $tab     = $this->generateHeader('Chronos (API)');
+        $tab[]   = '';
 
         foreach ($content['installed'] as $value) {
             $name          = $value['name'];
@@ -38,7 +40,7 @@ class OutdatedLibraries extends Command
 
                 if ('symfony' === $pieces[0]) {
                     if ('http-kernel' === $pieces[1]) {
-                        array_unshift($tab, $this->pattern($pieces[0], $version, $latestVersion));
+                        $tab[2] = $this->pattern($pieces[0], $version, $latestVersion);
                     }
                 } elseif ('semver-safe-update' !== $latestStatus) {
                     $tab[] = $this->pattern($name, $version, $latestVersion);
@@ -46,14 +48,8 @@ class OutdatedLibraries extends Command
             }
         }
 
-        array_unshift($tab, '| Chronos (API) | version  | version disponible |', '| --- | --- | --- |');
         $output->writeln($tab);
 
         return 0;
-    }
-
-    private function pattern(string $name, string $version, string $latestVersion = 'abandonné'): string
-    {
-        return '| ⚠️' . ' ' . " $name  | $version  | $latestVersion |";
     }
 }
