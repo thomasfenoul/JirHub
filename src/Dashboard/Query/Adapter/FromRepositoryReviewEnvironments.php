@@ -30,7 +30,7 @@ class FromRepositoryReviewEnvironments implements ReviewEnvironments
             new ReviewEnvironment('blue', 'PL Invoice'),
             new ReviewEnvironment('green', 'PL Expert'),
             new ReviewEnvironment('yellow', 'PL Wallet'),
-            new ReviewEnvironment('orange'),
+            new ReviewEnvironment('orange', 'Transverse'),
             new ReviewEnvironment('red', 'PL Legal'),
             new ReviewEnvironment('pink', 'PL Accounts'),
         ];
