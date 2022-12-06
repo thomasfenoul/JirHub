@@ -34,6 +34,7 @@ class FromRepositoryReviewEnvironments implements ReviewEnvironments
             new ReviewEnvironment('red', 'PL Legal'),
             new ReviewEnvironment('pink', 'PL Accounts'),
             new ReviewEnvironment('purple', 'PL Expert'),
+            new ReviewEnvironment('grey', 'PL Expert'),
         ];
 
         /** @var ReviewEnvironment $environment */
