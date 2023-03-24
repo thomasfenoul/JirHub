@@ -15,6 +15,9 @@ $validation-env-colors: (
   "pink": #FF69B4,
   "purple": #69359C,
   "grey": #808080,
+  "black": #000000,
+  "white": #FFFFFF,
+  "brown": #964B00,
 );
 
 html {
@@ -83,7 +86,11 @@ html {
           &.#{$env} {
             background-color: $color;
             border-color: $color;
-            color: #fff;
+            @if $env == "white" {
+              color: #000;
+            } @else {
+              color: #fff;
+            }
 
             &.free {
               * {
@@ -93,7 +100,11 @@ html {
               .button {
                 background-color: $color;
                 border-color: $color;
-                color: #ffffff;
+                @if $env == "white" {
+                  color: #000;
+                } @else {
+                  color: #fff;
+                }
               }
             }
           }
