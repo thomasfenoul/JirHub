@@ -113,6 +113,10 @@
 								{% endif %}
 							</div>
 						</div>
+
+						{% if loop.index > 0 and loop.index is divisible by(5) %}
+							<br>
+						{% endif %}
 					{% endfor %}
 				</div>
 			</section>
