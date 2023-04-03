@@ -19,7 +19,7 @@
                     {% set free = env.jirHubTask is null %}
                     <div class="col-xl-2 col-lg-3 col-md-4 mt-3 environment environment-{{ env.name | lower }} {{ free ? 'free' :'' }}">
                         <div class="card">
-                            <div class="card-header d-flex justify-content-between">
+                            <div class="card-header d-flex justify-content-between rounded-top-0 pe-2">
                                 <span>
                                     {% if free %}
                                         <i>Disponible</i>
@@ -31,9 +31,68 @@
                                         {% endif %}
                                     {% endif %}
                                 </span>
-                                <span>
+                                <div class="d-flex align-items-center">
+                                <span class="me-2">
                                     {{ env.owner }}
                                 </span>
+                                    <div class="dropdown lh-1">
+                                        <button class="btn btn-link p-0 border-0 lh-1" type="button"
+                                                data-bs-toggle="dropdown" aria-expanded="false">
+                                            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22"
+                                                 viewBox="0 0 24 24" stroke-width="2"
+                                                 stroke-linejoin="round">
+                                                <path d="M13 5a1 1 0 1 0-2 0 1 1 0 1 0 2 0zm0 7a1 1 0 1 0-2 0 1 1 0 1 0 2 0zm0 7a1 1 0 1 0-2 0 1 1 0 1 0 2 0z"/>
+                                            </svg>
+                                        </button>
+                                        <ul class="dropdown-menu">
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://apps.chronos-review-{{ env.name }}.preprod.tiime.tech"
+                                                   target="_blank">
+                                                    Tiime Apps
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://expert.chronos-review-{{ env.name }}.preprod.tiime.tech"
+                                                   target="_blank">
+                                                    Tiime Expert
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://pro.chronos-review-{{ env.name }}.preprod.tiime.tech"
+                                                   target="_blank">
+                                                    Tiime Pulse
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://data.chronos-review-{{ env.name }}.preprod.tiime.tech"
+                                                   target="_blank">
+                                                    Tiime Data
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://care.chronos-review-{{ env.name }}.preprod.tiime.tech"
+                                                   target="_blank">
+                                                    Tiime Care
+                                                </a>
+                                            </li>
+                                            <li>
+                                                <hr class="dropdown-divider">
+                                            </li>
+                                            <li>
+                                                <a class="dropdown-item"
+                                                   href="https://argo.preprod.tiime.tech/applications/argocd/chronos-review-{{ env.name }}"
+                                                   target="_blank">
+                                                    ArgoCD Dashboard
+                                                </a>
+                                            </li>
+                                        </ul>
+                                    </div>
+                                </div>
                             </div>
                             <div class="card-body d-flex flex-column">
                                 {% if free is same as false %}
@@ -70,65 +129,6 @@
                                                 {% endif %}
 
 
-                                            </div>
-                                            <div>
-                                                <div class="dropdown">
-                                                    <button class="btn btn-link p-0 border-0" type="button"
-                                                            data-bs-toggle="dropdown" aria-expanded="false">
-                                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24"
-                                                             viewBox="0 0 24 24" stroke-width="2"
-                                                             stroke-linejoin="round">
-                                                            <path d="M13 5a1 1 0 1 0-2 0 1 1 0 1 0 2 0zm0 7a1 1 0 1 0-2 0 1 1 0 1 0 2 0zm0 7a1 1 0 1 0-2 0 1 1 0 1 0 2 0z"/>
-                                                        </svg>
-                                                    </button>
-                                                    <ul class="dropdown-menu">
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="https://apps.chronos-review-{{ env.name }}.preprod.tiime.tech"
-                                                               target="_blank">
-                                                                Tiime Apps
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="https://expert.chronos-review-{{ env.name }}.preprod.tiime.tech"
-                                                               target="_blank">
-                                                                Tiime Expert
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="https://pro.chronos-review-{{ env.name }}.preprod.tiime.tech"
-                                                               target="_blank">
-                                                                Tiime Pulse
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="https://data.chronos-review-{{ env.name }}.preprod.tiime.tech"
-                                                               target="_blank">
-                                                                Tiime Data
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="https://care.chronos-review-{{ env.name }}.preprod.tiime.tech"
-                                                               target="_blank">
-                                                                Tiime Care
-                                                            </a>
-                                                        </li>
-                                                        <li>
-                                                            <hr class="dropdown-divider">
-                                                        </li>
-                                                        <li>
-                                                            <a class="dropdown-item"
-                                                               href="https://argo.preprod.tiime.tech/applications/argocd/chronos-review-{{ env.name }}"
-                                                               target="_blank">
-                                                                ArgoCD Dashboard
-                                                            </a>
-                                                        </li>
-                                                    </ul>
-                                                </div>
                                             </div>
                                         </div>
                                     </div>

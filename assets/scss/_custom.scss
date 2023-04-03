@@ -25,7 +25,7 @@ $reviewEnvironments: (
         background-color: $color;
         color: color-contrast($color);
 
-        a {
+        .card-body a {
           text-decoration: none;
         }
 
@@ -41,6 +41,10 @@ $reviewEnvironments: (
 
         .card-body {
           min-height: 150px;
+        }
+
+        .dropdown-menu{
+          line-height: 24px;
         }
       }
 
