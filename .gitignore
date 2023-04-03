@@ -16,3 +16,5 @@
 
 .idea
 .php-cs-fixer.cache
+node_modules
+tools/php-cs-fixer/vendor
