@@ -11,6 +11,7 @@
         "jolicode/slack-php-api": "^4.5",
         "knplabs/github-api": "^3.11",
         "lcobucci/jwt": "^5.0",
+        "symfony/apache-pack": "^1.0",
         "symfony/asset": "6.2.*",
         "symfony/console": "6.2.*",
         "symfony/dotenv": "6.2.*",
