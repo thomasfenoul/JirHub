@@ -23,10 +23,9 @@ use Symfony\Contracts\HttpClient\Exception\TransportExceptionInterface;
 class IndexController extends AbstractController
 {
     /**
-     * @Route("/check", name="check_deployability", methods={"GET"})
-     *
      * @throws InvalidArgumentException
      */
+    #[Route('/check', name: 'check_deployability', methods: ['GET'])]
     public function checkAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
@@ -40,13 +39,12 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/apply", name="apply_labels", methods={"GET"})
-     *
      * @throws ClientExceptionInterface
      * @throws RedirectionExceptionInterface
      * @throws ServerExceptionInterface
      * @throws InvalidArgumentException
      */
+    #[Route('/apply', name: 'apply_labels', methods: ['GET'])]
     public function applyAction(Request $request, GitHubHandler $gitHubHandler): Response
     {
         $branch = $request->get('branch');
@@ -55,9 +53,7 @@ class IndexController extends AbstractController
         return new Response((int) $gitHubHandler->applyLabels($branch, $env));
     }
 
-    /**
-     * @Route("/jira_webhook", name="jira_webhook", methods={"POST"})
-     */
+    #[Route('/jira_webhook', name: 'jira_webhook', methods: ['POST'])]
     public function jiraWebhookAction(Request $request, PullRequestRepository $pullRequestRepository): Response
     {
         $data = json_decode($request->getContent(), true);
@@ -82,8 +78,6 @@ class IndexController extends AbstractController
     }
 
     /**
-     * @Route("/github_webhook", name="github_webhook", methods={"POST"})
-     *
      * @throws InvalidArgumentException
      * @throws UnexpectedContentType
      * @throws ClientExceptionInterface
@@ -92,6 +86,7 @@ class IndexController extends AbstractController
      * @throws TransportExceptionInterface
      * @throws PullRequestNotFoundException
      */
+    #[Route('/github_webhook', name: 'github_webhook', methods: ['POST'])]
     public function githubWebhookAction(
         Request $request,
         JirHubTaskHandler $jirHubTaskHandler,
@@ -105,9 +100,7 @@ class IndexController extends AbstractController
         return new Response('', Response::HTTP_NO_CONTENT);
     }
 
-    /**
-     * @Route("/slack_interactions_webhook", name="slack_interactions_webhook", methods={"POST"})
-     */
+    #[Route('/slack_interactions_webhook', name: 'slack_interactions_webhook', methods: ['POST'])]
     public function slackInteractionsWebhookAction(
         Request $request,
         SlackHandler $slackHandler
