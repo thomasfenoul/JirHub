@@ -33,6 +33,7 @@ parameters:
   elasticsearch.index.tma_issues: '%env(ELASTICSEARCH_INDEX_TMA_ISSUES)%'
   heroku.domain: '%env(HEROKU_DOMAIN)%'
   heroku.api_key: '%env(HEROKU_API_KEY)%'
+  hosted_domain: 'tiime.fr'
 
 services:
   # default configuration for services in *this* file
